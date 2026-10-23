@@ -240,11 +240,16 @@
  * 浮层侧栏（窄屏 / 宽屏折叠态）。遵循“添加时不透明度后变、删除时不透明度先变”：
  * 打开时抽屉先滑、遮罩稍后淡入；关闭时遮罩先淡出、抽屉随后收回。曲线一律 ease-out，
  * 关闭更快（主动操作者希望越快越好），且 transition 可被随时打断反向。
+ * 位置用 translate 属性（不是 Tailwind 的 translate-x 类，那会和过渡属性对不上），
+ * 拖拽手势（drawerDrag.ts）在同一属性上写内联值。
  */
 .phone-drawer {
-  transition: transform 220ms var(--ease-smooth-out);
+  translate: -100% 0;
+  transition: translate 220ms var(--ease-smooth-out);
+  touch-action: pan-y;
 }
 .phone-drawer[data-open="true"] {
+  translate: 0 0;
   transition-duration: 340ms;
 }
 .phone-drawer-scrim {
@@ -259,9 +264,72 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .phone-drawer,
-  .phone-drawer-scrim {
+  .phone-drawer-scrim,
+  .phone-indicator,
+  .phone-sprout {
     transition: none !important;
   }
+}
+
+/*
+ * 「跳跃」共享高亮（slidingIndicator.ts）：一组元素共用一块底，选中变化时平移过去。
+ * 0.45s 的 ease-out 前段很快、尾段很长，快速连点也能被下一次平移打断接续。
+ */
+.phone-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  border-radius: var(--radius-lg, 0.5rem);
+  transition:
+    transform 450ms var(--ease-smooth-out),
+    width 450ms var(--ease-smooth-out),
+    height 450ms var(--ease-smooth-out),
+    opacity 200ms var(--ease-smooth-out);
+}
+.phone-session-indicator {
+  background: color-mix(in oklab, var(--brand) 10%, transparent);
+}
+.dark .phone-session-indicator {
+  background: color-mix(in oklab, var(--brand) 16%, transparent);
+}
+.phone-seg-thumb {
+  border-radius: calc(var(--radius-lg, 0.5rem) - 2px);
+  background: var(--background);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 0 0 0.5px rgb(0 0 0 / 0.04);
+}
+.phone-seg-item {
+  transition: color 300ms var(--ease-smooth-out);
+}
+/* 同一会话的其他副本（被高亮的是第一处）：回退到静态底色，仍能看出当前所在 */
+.phone-session-list [data-active="true"]:not([data-indicated]) {
+  background: color-mix(in oklab, var(--brand) 6%, transparent);
+}
+
+/*
+ * 「发芽」：从触发按钮处长出的临时浮层。缩放从 0.96 起（不从 0，避免“从一个点冒出来”），
+ * 透明度与位移错开：出现时透明度稍后、消失时透明度先走；收起比展开更快。
+ */
+.phone-sprout {
+  transform-origin: var(--sprout-origin, bottom right);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(6px) scale(0.96);
+  transition:
+    transform 180ms var(--ease-smooth-out),
+    opacity 120ms var(--ease-smooth-out),
+    visibility 0ms linear 180ms;
+}
+.phone-sprout[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    transform 380ms var(--ease-smooth-out),
+    opacity 240ms var(--ease-smooth-out) 30ms,
+    visibility 0ms linear 0ms;
 }
 
 /* coworker tab 滑动底：必须脱离文档流，否则会占住当前 tab 的宽度把后面的 tab 挤偏 */

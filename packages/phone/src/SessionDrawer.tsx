@@ -25,15 +25,17 @@ import {
   Laptop,
   MessageSquarePlus,
   Palette,
+  PanelLeft,
   PanelLeftClose,
   PanelLeftOpen,
   Pencil,
   Pin,
   Plus,
+  Settings2,
   Unplug,
   X,
 } from 'lucide-react';
-import { type ReactNode, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -54,7 +56,10 @@ import {
   shownConversationCount,
 } from '@/stores/sessions/sessionSwitchSlots';
 import type { StoredDevice } from './deviceList';
+import { useDrawerDrag } from './drawerDrag';
 import type { PushFailureReason } from './push';
+import { Segmented } from './Segmented';
+import { attrSelector, useSlidingIndicator } from './slidingIndicator';
 import {
   getThemePreference,
   setThemePreference,
@@ -90,6 +95,8 @@ interface Props {
   pinnable?: boolean;
   /** 切换 常驻/折叠；调用方负责持久化 */
   onTogglePinned?(): void;
+  /** 浮层模式下打开抽屉（折叠把手点按 / 右拉） */
+  onOpen?(): void;
   projects: ProjectEntry[];
   groups?: ProjectGroupEntry[];
   catalog: CatalogEntry[];
@@ -129,6 +136,7 @@ export function SessionDrawer({
   docked = false,
   pinnable = false,
   onTogglePinned,
+  onOpen,
   projects,
   groups = [],
   catalog,
@@ -162,6 +170,21 @@ export function SessionDrawer({
   /** 待确认解绑的 pairId；null = 无确认框 */
   const [confirmUnpair, setConfirmUnpair] = useState<string | null>(null);
   const [themePref, setThemePref] = useState<ThemePreference>(getThemePreference);
+  /** 底部设置浮层（主题 / 推送 / 设备管理） */
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const drawerRef = useRef<HTMLElement>(null);
+  const scrimRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const listIndicatorRef = useSlidingIndicator(listRef, attrSelector('data-session-id', activeId));
+  useDrawerDrag({
+    enabled: !docked,
+    open,
+    drawerRef,
+    scrimRef,
+    onOpen: () => onOpen?.(),
+    onClose,
+  });
   const [selectedGroupId, setSelectedGroupId] = useState(() => {
     try {
       return localStorage.getItem('enso-phone-selected-project-group') ?? ALL_GROUP_ID;
@@ -182,8 +205,24 @@ export function SessionDrawer({
 
   // 抽屉关闭时收起确认态，避免下次打开还停在确认框
   useEffect(() => {
-    if (!open) setConfirmUnpair(null);
+    if (!open) {
+      setConfirmUnpair(null);
+      setSettingsOpen(false);
+    }
   }, [open]);
+
+  // 设置浮层：点外面收起
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (footerRef.current && !footerRef.current.contains(e.target as Node)) {
+        setSettingsOpen(false);
+        setConfirmUnpair(null);
+      }
+    };
+    document.addEventListener('pointerdown', onDown);
+    return () => document.removeEventListener('pointerdown', onDown);
+  }, [settingsOpen]);
 
   // 相对时间每分钟自刷。抽屉关闭时停表；再打开必须先刷 now，否则会拿着冻结基准
   // 把更新过的会话算成未来（「x 小时后」）。杀进程重挂看起来像「同步好了」。
@@ -241,6 +280,7 @@ export function SessionDrawer({
     <>
       {!docked && (
         <button
+          ref={scrimRef}
           type="button"
           aria-label="关闭侧栏"
           onClick={onClose}
@@ -253,16 +293,28 @@ export function SessionDrawer({
           )}
         />
       )}
+      {!docked && pinnable && (
+        // 宽屏折叠态的展开入口：左缘中部把手，不与各屏头部按钮冲突，任何界面都能唤回侧栏。
+        // 只支持点按：左缘右拉会被 Android 系统返回手势截走（见 drawerDrag.ts）。
+        // 不用 backdrop-blur：模糊滤镜在 Android 上代价高，常驻元素用实色底即可
+        <button
+          type="button"
+          onClick={onOpen}
+          aria-label="打开会话列表"
+          data-open={open}
+          className="phone-drawer-handle fixed top-1/2 left-0 z-40 flex h-16 w-6 -translate-y-1/2 items-center justify-center rounded-r-lg border border-l-0 bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground"
+        >
+          <PanelLeft className="h-4.5 w-4.5" />
+        </button>
+      )}
       <aside
+        ref={drawerRef}
         data-open={open}
         className={cn(
           'flex shrink-0 flex-col border-r bg-background',
           docked
             ? 'relative h-full w-72'
-            : cn(
-                'phone-drawer fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs',
-                open ? 'translate-x-0' : '-translate-x-full'
-              )
+            : 'phone-drawer fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs'
         )}
       >
         <div
@@ -272,25 +324,14 @@ export function SessionDrawer({
           )}
         >
           {botSegment ? (
-            <span className="flex rounded-lg bg-muted p-0.5 text-sm">
-              {(['项目', 'Bot'] as const).map((label) => {
-                const selected = (label === 'Bot') === botSegment.active;
-                return (
-                  <button
-                    key={label}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => botSegment.onChange(label === 'Bot')}
-                    className={cn(
-                      'rounded-md px-3 py-0.5 transition-colors',
-                      selected ? 'bg-background font-medium shadow-xs' : 'text-muted-foreground'
-                    )}
-                  >
-                    {label}
-                  </button>
-                );
-              })}
-            </span>
+            <Segmented
+              options={[
+                { value: 'code', label: '项目' },
+                { value: 'bot', label: 'Bot' },
+              ]}
+              value={botSegment.active ? 'bot' : 'code'}
+              onChange={(next) => botSegment.onChange(next === 'bot')}
+            />
           ) : (
             <span className="font-medium text-sm">项目</span>
           )}
@@ -376,7 +417,15 @@ export function SessionDrawer({
         {botActive ? (
           botSegment?.panel
         ) : (
-          <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
+          <div
+            ref={listRef}
+            className="phone-session-list relative isolate min-h-0 flex-1 space-y-2 overflow-y-auto p-2"
+          >
+            <div
+              ref={listIndicatorRef}
+              aria-hidden
+              className="phone-indicator phone-session-indicator"
+            />
             {projects.length === 0 && (
               <p className="rounded-lg border border-dashed px-3 py-6 text-center text-muted-foreground text-sm">
                 桌面端还没有项目
@@ -519,7 +568,7 @@ export function SessionDrawer({
         {!botActive && archivedSessions.length > 0 && (
           <div className="shrink-0 border-t p-2">
             {archivedOpen && (
-              <div className="mb-0.5 flex max-h-64 flex-col overflow-y-auto">
+              <div className="phone-session-list mb-0.5 flex max-h-64 flex-col overflow-y-auto">
                 {archivedSessions.map((session) => (
                   <SessionRow
                     key={session.id}
@@ -557,149 +606,195 @@ export function SessionDrawer({
           </div>
         )}
 
-        <div className="shrink-0 space-y-1 border-t p-2 pb-safe">
-          {!confirmUnpair && (
-            <div className="flex items-center gap-2 px-2 py-1.5">
-              <Palette className="h-4 w-4 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 text-muted-foreground text-sm">主题</span>
-              <div className="flex shrink-0 gap-0.5 rounded-md border p-0.5">
-                {THEME_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    type="button"
-                    onClick={() => setThemePreference(option.value)}
-                    className={cn(
-                      'rounded px-2 py-1 text-[11px] transition-colors',
-                      themePref === option.value
-                        ? 'bg-primary text-primary-foreground'
-                        : 'text-muted-foreground hover:bg-accent'
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {!confirmUnpair && (
-            <div className="px-2 py-1.5">
-              <div className="flex items-center gap-2">
-                <Bell className="h-4 w-4 shrink-0 text-muted-foreground" />
-                <span className="min-w-0 flex-1 text-muted-foreground text-sm">推送通知</span>
-                <Switch
-                  checked={pushEnabled}
-                  disabled={pushBusy || pushAvailability !== 'ok' || !connected || !pushConfigReady}
-                  onCheckedChange={onTogglePush}
+        {/*
+          底栏只留一行：当前电脑 + 连接状态 + 设置。主题/推送/设备管理收进「发芽」浮层，
+          从设置按钮处长出——低频设置不再常驻占掉列表三分之一的高度。
+        */}
+        <div ref={footerRef} className="relative shrink-0 border-t p-2 pb-safe">
+          <div
+            data-open={settingsOpen}
+            role="dialog"
+            aria-label="设置"
+            aria-hidden={!settingsOpen}
+            className="phone-sprout absolute right-2 bottom-full left-2 z-10 mb-1 max-h-[70vh] space-y-1 overflow-y-auto rounded-xl border bg-popover p-2 text-popover-foreground shadow-lg"
+          >
+            {!confirmUnpair && (
+              <div className="flex items-center gap-2 px-2 py-1.5">
+                <Palette className="h-4 w-4 shrink-0 text-muted-foreground" />
+                <span className="min-w-0 flex-1 text-muted-foreground text-sm">主题</span>
+                <Segmented
+                  size="sm"
+                  options={THEME_OPTIONS}
+                  value={themePref}
+                  onChange={(next) => setThemePreference(next)}
                 />
               </div>
-              {pushBusy && <p className="mt-1 pl-6 text-[11px] text-muted-foreground">正在开启…</p>}
-              {pushError && !pushBusy && (
-                <p className="mt-1 pl-6 text-[11px] text-destructive">
-                  {PUSH_ERROR_TEXT[pushError]}
-                </p>
-              )}
-              {pushAvailability === 'ok' && connected && !pushConfigReady && (
-                <p className="mt-1 pl-6 text-[11px] text-muted-foreground">
-                  需先升级桌面端 EnsoCode 才能开启推送。
-                </p>
-              )}
-              {pushAvailability === 'needs-install' && (
-                <p className="mt-1 pl-6 text-[11px] text-muted-foreground">
-                  iOS 需先用分享菜单「添加到主屏幕」，从主屏幕打开后才能开启。
-                </p>
-              )}
-              {pushAvailability === 'unsupported' && (
-                <p className="mt-1 pl-6 text-[11px] text-muted-foreground">
-                  当前浏览器不支持推送。
-                </p>
-              )}
-            </div>
-          )}
+            )}
 
-          <div className="space-y-0.5">
-            {devices.map((d) => {
-              const isActive = d.pairId === activeDevicePairId;
-              if (confirmUnpair === d.pairId) {
-                return (
-                  <div key={d.pairId} className="space-y-2 rounded-lg border border-dashed p-3">
-                    <p className="text-xs">解绑「{d.label}」后需重新扫码才能连接，确定吗？</p>
-                    <div className="flex justify-end gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setConfirmUnpair(null)}>
-                        取消
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => {
-                          setConfirmUnpair(null);
-                          onUnpairDevice(d.pairId);
-                        }}
-                      >
-                        确定解绑
-                      </Button>
+            {!confirmUnpair && (
+              <div className="px-2 py-1.5">
+                <div className="flex items-center gap-2">
+                  <Bell className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <span className="min-w-0 flex-1 text-muted-foreground text-sm">推送通知</span>
+                  <Switch
+                    checked={pushEnabled}
+                    disabled={
+                      pushBusy || pushAvailability !== 'ok' || !connected || !pushConfigReady
+                    }
+                    onCheckedChange={onTogglePush}
+                  />
+                </div>
+                {pushBusy && (
+                  <p className="mt-1 pl-6 text-[11px] text-muted-foreground">正在开启…</p>
+                )}
+                {pushError && !pushBusy && (
+                  <p className="mt-1 pl-6 text-[11px] text-destructive">
+                    {PUSH_ERROR_TEXT[pushError]}
+                  </p>
+                )}
+                {pushAvailability === 'ok' && connected && !pushConfigReady && (
+                  <p className="mt-1 pl-6 text-[11px] text-muted-foreground">
+                    需先升级桌面端 EnsoCode 才能开启推送。
+                  </p>
+                )}
+                {pushAvailability === 'needs-install' && (
+                  <p className="mt-1 pl-6 text-[11px] text-muted-foreground">
+                    iOS 需先用分享菜单「添加到主屏幕」，从主屏幕打开后才能开启。
+                  </p>
+                )}
+                {pushAvailability === 'unsupported' && (
+                  <p className="mt-1 pl-6 text-[11px] text-muted-foreground">
+                    当前浏览器不支持推送。
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="space-y-0.5">
+              {devices.map((d) => {
+                const isActive = d.pairId === activeDevicePairId;
+                if (confirmUnpair === d.pairId) {
+                  return (
+                    <div key={d.pairId} className="space-y-2 rounded-lg border border-dashed p-3">
+                      <p className="text-xs">解绑「{d.label}」后需重新扫码才能连接，确定吗？</p>
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setConfirmUnpair(null)}>
+                          取消
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => {
+                            setConfirmUnpair(null);
+                            onUnpairDevice(d.pairId);
+                          }}
+                        >
+                          确定解绑
+                        </Button>
+                      </div>
                     </div>
+                  );
+                }
+                return (
+                  <div key={d.pairId} className="flex items-center gap-0.5">
+                    <button
+                      type="button"
+                      onClick={() => onSwitchDevice(d.pairId)}
+                      className={cn(
+                        'flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors hover:bg-muted/60',
+                        isActive ? 'text-foreground' : 'text-muted-foreground'
+                      )}
+                    >
+                      <Laptop className="h-4 w-4 shrink-0" />
+                      <span className="min-w-0 flex-1 truncate">{d.label}</span>
+                      {isActive && (
+                        <span
+                          className={cn(
+                            'shrink-0 text-[10px]',
+                            connected ? 'text-muted-foreground' : 'text-destructive'
+                          )}
+                        >
+                          {connectionLabel}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`重命名 ${d.label}`}
+                      onClick={() => {
+                        const label = window.prompt('给这台电脑起个名：', d.label);
+                        if (label?.trim()) onRenameDevice(d.pairId, label);
+                      }}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-accent hover:text-foreground"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`解绑 ${d.label}`}
+                      onClick={() => setConfirmUnpair(d.pairId)}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-accent hover:text-destructive"
+                    >
+                      <Unplug className="h-3.5 w-3.5" />
+                    </button>
                   </div>
                 );
-              }
-              return (
-                <div key={d.pairId} className="flex items-center gap-0.5">
-                  <button
-                    type="button"
-                    onClick={() => onSwitchDevice(d.pairId)}
-                    className={cn(
-                      'flex min-w-0 flex-1 items-center gap-2 rounded-lg px-2 py-2 text-left text-sm transition-colors hover:bg-muted/60',
-                      isActive ? 'text-foreground' : 'text-muted-foreground'
-                    )}
-                  >
-                    <Laptop className="h-4 w-4 shrink-0" />
-                    <span className="min-w-0 flex-1 truncate">{d.label}</span>
-                    {isActive && (
-                      <span
-                        className={cn(
-                          'shrink-0 text-[10px]',
-                          connected ? 'text-muted-foreground' : 'text-destructive'
-                        )}
-                      >
-                        {connectionLabel}
-                      </span>
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`重命名 ${d.label}`}
-                    onClick={() => {
-                      const label = window.prompt('给这台电脑起个名：', d.label);
-                      if (label?.trim()) onRenameDevice(d.pairId, label);
-                    }}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-accent hover:text-foreground"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label={`解绑 ${d.label}`}
-                    onClick={() => setConfirmUnpair(d.pairId)}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground/60 transition-colors hover:bg-accent hover:text-destructive"
-                  >
-                    <Unplug className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              );
-            })}
+              })}
+              <button
+                type="button"
+                onClick={onAddDevice}
+                className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-muted-foreground text-sm transition-colors hover:bg-muted/60 hover:text-foreground"
+              >
+                <Plus className="h-4 w-4 shrink-0" />
+                <span>配对新电脑</span>
+              </button>
+            </div>
+
+            <p className="px-2 pt-0.5 text-center text-[10px] text-muted-foreground/60">
+              版本 {__COMMIT__}
+            </p>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="flex min-w-0 flex-1 items-center gap-2 px-2 py-1.5 text-sm">
+              <span
+                className={cn(
+                  'h-1.5 w-1.5 shrink-0 rounded-full',
+                  connected ? 'bg-green-500' : 'bg-destructive'
+                )}
+              />
+              <span className="min-w-0 truncate">
+                {devices.find((d) => d.pairId === activeDevicePairId)?.label ?? '电脑'}
+              </span>
+              <span
+                className={cn(
+                  'shrink-0 text-[11px]',
+                  connected ? 'text-muted-foreground' : 'text-destructive'
+                )}
+              >
+                {connectionLabel}
+              </span>
+            </div>
             <button
               type="button"
-              onClick={onAddDevice}
-              className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-muted-foreground text-sm transition-colors hover:bg-muted/60 hover:text-foreground"
+              aria-label="设置"
+              aria-expanded={settingsOpen}
+              onClick={() => {
+                setSettingsOpen((prev) => !prev);
+                setConfirmUnpair(null);
+              }}
+              className={cn(
+                'phone-hit flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground',
+                settingsOpen && 'bg-muted text-foreground'
+              )}
             >
-              <Plus className="h-4 w-4 shrink-0" />
-              <span>配对新电脑</span>
+              <Settings2
+                className={cn(
+                  'h-4 w-4 transition-transform duration-500 ease-[var(--ease-smooth-out)]',
+                  settingsOpen && 'rotate-90'
+                )}
+              />
             </button>
           </div>
-
-          <p className="px-2 pt-0.5 text-center text-[10px] text-muted-foreground/60">
-            版本 {__COMMIT__}
-          </p>
         </div>
       </aside>
     </>
@@ -724,9 +819,12 @@ function SessionRow({
     <button
       type="button"
       onClick={() => onSelect(session.id)}
+      // 选中底色由列表共享的滑动高亮绘制（slidingIndicator），这里只标记
+      data-session-id={session.id}
+      data-active={active}
       className={cn(
         'flex w-full items-center gap-2 rounded-lg py-[9px] pr-2 pl-4 text-left text-sm transition-colors',
-        active ? 'bg-brand/10 dark:bg-brand/15' : 'hover:bg-muted/60'
+        !active && 'hover:bg-muted/60'
       )}
     >
       <StatusDot status={session.status} unread={session.unread} />
