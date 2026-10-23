@@ -1199,12 +1199,13 @@ export function App() {
       />
       <div className="flex h-full min-w-0 flex-1 flex-col">
         {wide && !docked && !drawerOpen && (
-          // 宽屏折叠态的展开入口：左缘中部把手，不与各屏头部按钮冲突，任何界面都能唤回侧栏
+          // 宽屏折叠态的展开入口：左缘中部把手，不与各屏头部按钮冲突，任何界面都能唤回侧栏。
+          // 不用 backdrop-blur：模糊滤镜在 Android 上代价高，常驻元素用实色底即可
           <button
             type="button"
             onClick={openDrawer}
             aria-label="打开会话列表"
-            className="fixed top-1/2 left-0 z-40 flex h-16 w-6 -translate-y-1/2 items-center justify-center rounded-r-lg border border-l-0 bg-background/90 text-muted-foreground shadow-sm backdrop-blur transition-colors hover:bg-accent hover:text-foreground"
+            className="fixed top-1/2 left-0 z-40 flex h-16 w-6 -translate-y-1/2 items-center justify-center rounded-r-lg border border-l-0 bg-background text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-foreground"
           >
             <PanelLeft className="h-4.5 w-4.5" />
           </button>

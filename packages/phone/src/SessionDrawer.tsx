@@ -246,19 +246,21 @@ export function SessionDrawer({
           onClick={onClose}
           // 关闭后要 visibility:hidden 而非只透明：iOS standalone 的状态栏底色采样页面顶边，
           // 仅改 opacity 不触发重采，会把遮罩色（黑 40% 叠白 = #999）卡在状态栏直到重开
+          data-open={open}
           className={cn(
-            'fixed inset-0 z-40 bg-black/40 transition-[opacity,visibility] duration-200',
+            'phone-drawer-scrim fixed inset-0 z-40 bg-black/40',
             open ? 'visible opacity-100' : 'invisible pointer-events-none opacity-0'
           )}
         />
       )}
       <aside
+        data-open={open}
         className={cn(
           'flex shrink-0 flex-col border-r bg-background',
           docked
             ? 'relative h-full w-72'
             : cn(
-                'fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs transition-transform duration-200',
+                'phone-drawer fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs',
                 open ? 'translate-x-0' : '-translate-x-full'
               )
         )}
@@ -298,7 +300,7 @@ export function SessionDrawer({
                 type="button"
                 onClick={onTogglePinned}
                 aria-label="收起侧栏"
-                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="phone-hit rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <PanelLeftClose className="h-4 w-4" />
               </button>
@@ -310,7 +312,7 @@ export function SessionDrawer({
                   type="button"
                   onClick={onTogglePinned}
                   aria-label="固定侧栏"
-                  className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  className="phone-hit rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 >
                   <PanelLeftOpen className="h-4 w-4" />
                 </button>
@@ -319,7 +321,7 @@ export function SessionDrawer({
                 type="button"
                 onClick={onClose}
                 aria-label="关闭侧栏"
-                className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="phone-hit rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -386,7 +388,7 @@ export function SessionDrawer({
                 <div className="flex items-center gap-1.5 px-2 py-2">
                   <span className="font-medium text-sm">活跃中</span>
                 </div>
-                <div className="flex flex-col gap-y-0.5">
+                <div className="flex flex-col">
                   {activeSessions.map((session) => (
                     <SessionRow
                       key={session.id}
@@ -406,7 +408,7 @@ export function SessionDrawer({
                   <Pin className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="font-medium text-sm">置顶</span>
                 </div>
-                <div className="flex flex-col gap-y-0.5">
+                <div className="flex flex-col">
                   {pinnedSessions.map((session) => (
                     <SessionRow
                       key={session.id}
@@ -517,7 +519,7 @@ export function SessionDrawer({
         {!botActive && archivedSessions.length > 0 && (
           <div className="shrink-0 border-t p-2">
             {archivedOpen && (
-              <div className="mb-0.5 flex max-h-64 flex-col gap-y-0.5 overflow-y-auto">
+              <div className="mb-0.5 flex max-h-64 flex-col overflow-y-auto">
                 {archivedSessions.map((session) => (
                   <SessionRow
                     key={session.id}
@@ -541,7 +543,7 @@ export function SessionDrawer({
               <span className="flex h-5 w-5 shrink-0 items-center justify-center">
                 <ChevronRight
                   className={cn(
-                    'h-3.5 w-3.5 text-muted-foreground transition-transform duration-200',
+                    'h-3.5 w-3.5 text-muted-foreground transition-transform duration-250 ease-[var(--ease-smooth-out)]',
                     archivedOpen ? '-rotate-90' : 'rotate-0'
                   )}
                 />
@@ -723,7 +725,7 @@ function SessionRow({
       type="button"
       onClick={() => onSelect(session.id)}
       className={cn(
-        'flex w-full items-center gap-2 rounded-lg py-2 pr-2 pl-4 text-left text-sm transition-colors',
+        'flex w-full items-center gap-2 rounded-lg py-[9px] pr-2 pl-4 text-left text-sm transition-colors',
         active ? 'bg-brand/10 dark:bg-brand/15' : 'hover:bg-muted/60'
       )}
     >
@@ -784,7 +786,7 @@ function ProjectGroup({
           <span className="flex h-5 w-5 shrink-0 items-center justify-center">
             <ChevronRight
               className={cn(
-                'h-3.5 w-3.5 text-muted-foreground transition-transform duration-200',
+                'h-3.5 w-3.5 text-muted-foreground transition-transform duration-250 ease-[var(--ease-smooth-out)]',
                 !folded && 'rotate-90'
               )}
             />
@@ -806,7 +808,7 @@ function ProjectGroup({
           <button
             type="button"
             onClick={onNew}
-            className="shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            className="phone-hit shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           >
             <MessageSquarePlus className="h-3.5 w-3.5" />
           </button>
@@ -814,7 +816,7 @@ function ProjectGroup({
       </div>
 
       {!folded && (
-        <div className="mt-0.5 flex flex-col gap-y-0.5">
+        <div className="mt-0.5 flex flex-col">
           {shown.map((session) => (
             <SessionRow
               key={session.id}

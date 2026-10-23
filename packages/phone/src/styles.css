@@ -136,6 +136,12 @@
     height: 100%;
     /* Safari 的状态栏/工具栏会采样页面边缘颜色，html 也要有底色，否则露出系统灰 */
     background: var(--background);
+    /* 字体可读性；-webkit-text-size-adjust 防止横屏初始化时 WebView 自行放大文字 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
 
   body {
@@ -158,6 +164,13 @@
   button:not(:disabled),
   [role="button"]:not(:disabled) {
     cursor: pointer;
+  }
+
+  /* 交互元素不参与文本选择：长按按钮不该选中文字或弹出系统菜单。消息正文仍可选。 */
+  button,
+  [role="button"] {
+    -webkit-user-select: none;
+    user-select: none;
   }
 
   ::-webkit-scrollbar {
@@ -191,6 +204,63 @@
     position: fixed;
     inset: 0;
     background-color: var(--background);
+  }
+}
+
+/*
+ * 触屏按压反馈。Tailwind 的 hover: 只在可悬停设备生效，平板/手机上中性按钮与列表行
+ * 原本按下去毫无反应。这里以类名约定统一补上：凡是声明了中性 hover 底色的元素，在
+ * 不可悬停的设备上按下即给同色反馈——一处规则覆盖全部，不必逐个组件改。
+ * 按下瞬时出现，松开沿 transition-colors 淡出（ease-out），符合“越快越好”的直接操作感。
+ * 主色按钮（hover:bg-primary 等）不在此列，避免按下时变灰。
+ */
+@media (hover: none) {
+  :is(button, [role="button"], a):is([class*="hover:bg-muted"], [class*="hover:bg-accent"]):active:not(:disabled) {
+    background-color: var(--accent);
+    transition-duration: 0ms;
+  }
+}
+
+/*
+ * 粗指针下扩大小图标按钮的热区（视觉尺寸不变）：24px 的图标按钮对手指太小，
+ * 用透明伪元素向四周各扩 10px，约 44px，与 iOS/Android 推荐触控尺寸一致。
+ */
+@media (pointer: coarse) {
+  .phone-hit {
+    position: relative;
+  }
+  .phone-hit::after {
+    content: "";
+    position: absolute;
+    inset: -10px;
+  }
+}
+
+/*
+ * 浮层侧栏（窄屏 / 宽屏折叠态）。遵循“添加时不透明度后变、删除时不透明度先变”：
+ * 打开时抽屉先滑、遮罩稍后淡入；关闭时遮罩先淡出、抽屉随后收回。曲线一律 ease-out，
+ * 关闭更快（主动操作者希望越快越好），且 transition 可被随时打断反向。
+ */
+.phone-drawer {
+  transition: transform 220ms var(--ease-smooth-out);
+}
+.phone-drawer[data-open="true"] {
+  transition-duration: 340ms;
+}
+.phone-drawer-scrim {
+  transition:
+    opacity 140ms var(--ease-smooth-out),
+    visibility 0ms linear 140ms;
+}
+.phone-drawer-scrim[data-open="true"] {
+  transition:
+    opacity 300ms var(--ease-smooth-out) 40ms,
+    visibility 0ms linear 0ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .phone-drawer,
+  .phone-drawer-scrim {
+    transition: none !important;
   }
 }
 
@@ -522,7 +592,8 @@
  */
 :root {
   --phone-touch: 44px;
-  --phone-ease: cubic-bezier(0.2, 0, 1, 1);
+  /* 按压是直接操作：只用 ease-out。原 (0.2, 0, 1, 1) 是先慢后快的 ease-in，按下去会“拖一下” */
+  --phone-ease: cubic-bezier(0.22, 1, 0.36, 1);
   --phone-press-duration: 120ms;
 }
 

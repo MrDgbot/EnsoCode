@@ -12,6 +12,9 @@ installElectronApiShim();
 // 主题：本地覆盖 > 桌面下发 > 跟随系统（桌面偏好经 client 的 appearance 帧到达）
 initTheme();
 
+// 刷新/重开 PWA 时由应用自己决定滚动位置，不让浏览器恢复到上次的半截位置
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+
 // iOS 独立 PWA 偶发钻到状态栏下被系统模糊盖住标题：检测到才退出 viewport-fit=cover
 installStatusBarOverlapGuard();
 
