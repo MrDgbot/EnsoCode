@@ -311,7 +311,7 @@ export function SessionDrawer({
         ref={drawerRef}
         data-open={open}
         className={cn(
-          'flex shrink-0 flex-col border-r bg-background',
+          'phone-sidebar-surface flex shrink-0 flex-col border-r',
           docked
             ? 'relative h-full w-72'
             : 'phone-drawer fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs'

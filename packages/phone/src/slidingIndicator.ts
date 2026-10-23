@@ -51,6 +51,18 @@ export function useSlidingIndicator(
       lastRectRef.current = rect;
       const instant = !animate || !visibleRef.current;
       if (instant) indicator.style.transition = 'none';
+      else {
+        // AD UI：短距离不回弹；长距离（> 240px，桌面 350px 按手持视距折算）用回弹曲线，
+        // 「质量」随距离增大，到位时轻微越过再落定
+        const prevY = Number(indicator.dataset.y ?? y);
+        const prevX = Number(indicator.dataset.x ?? x);
+        const far = Math.hypot(x - prevX, y - prevY) > 240;
+        indicator.style.transitionTimingFunction = far
+          ? 'cubic-bezier(0.36, 1.46, 0.38, 1.01), cubic-bezier(0.22, 1, 0.36, 1), cubic-bezier(0.22, 1, 0.36, 1), cubic-bezier(0.22, 1, 0.36, 1)'
+          : '';
+      }
+      indicator.dataset.x = String(x);
+      indicator.dataset.y = String(y);
       indicator.style.width = `${t.width}px`;
       indicator.style.height = `${t.height}px`;
       indicator.style.transform = `translate3d(${x}px, ${y}px, 0)`;

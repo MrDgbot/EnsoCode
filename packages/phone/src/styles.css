@@ -63,66 +63,88 @@
   }
 }
 
+/*
+ * 配色取自「设计垂点」(wxad.design) 本站与 AD UI：纯中性灰阶（不带色相），黑字为主，
+ * 微信绿 #07C160 作强调、#296BEF 作链接/信息色。层级靠灰度而不是色彩：
+ * 侧栏用 #F5F5F5 页底、内容区用白，悬停/按压填充为 5% 黑。
+ * 深色沿用微信深色模式的阶梯：#111 页底、#191919 内容、#2C2C2C 填充。
+ * 手机端独立于桌面强调色预设（桌面 html[data-accent] 不下发到手机）。
+ */
 @layer base {
   :root {
     color-scheme: light;
+    /* 《我们认真地想了想 font-family》/ AD UI 的字体栈：显式声明系统字体，
+       否则 Android/macOS Chrome 可能回落到非系统中文字体 */
+    --font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu,
+      "Helvetica Neue", Helvetica, Arial, "PingFang SC", "Hiragino Sans GB",
+      "Microsoft YaHei UI", "Microsoft YaHei", "Source Han Sans CN", sans-serif;
     --font-family-mono: "JetBrains Mono", "Menlo", monospace;
     --font-size-base: 15px;
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0.014 285.82);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0.014 285.82);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0.014 285.82);
-    --primary: oklch(0.205 0.014 285.82);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.965 0.003 285.82);
-    --secondary-foreground: oklch(0.205 0.014 285.82);
-    --muted: oklch(0.965 0.003 285.82);
-    --muted-foreground: oklch(0.556 0.014 285.82);
-    --accent: oklch(0.965 0.003 285.82);
-    --accent-foreground: oklch(0.205 0.014 285.82);
-    --destructive: oklch(0.577 0.245 27.33);
-    --destructive-foreground: oklch(0.985 0 0);
-    --success: oklch(0.527 0.154 150.07);
-    --success-foreground: oklch(0.985 0 0);
-    --warning: oklch(0.769 0.189 70.08);
-    --warning-foreground: oklch(0.205 0.014 285.82);
-    --info: oklch(0.623 0.214 259.81);
-    --info-foreground: oklch(0.985 0 0);
-    --border: oklch(0.922 0.003 285.82);
-    --input: oklch(0.922 0.003 285.82);
-    --ring: oklch(0.708 0.014 285.82);
+    --background: #ffffff;
+    --foreground: #1a1a1a;
+    --card: #ffffff;
+    --card-foreground: #1a1a1a;
+    --popover: #ffffff;
+    --popover-foreground: #1a1a1a;
+    --primary: #1a1a1a;
+    --primary-foreground: #ffffff;
+    --secondary: #f2f2f2;
+    --secondary-foreground: #1a1a1a;
+    --muted: #f2f2f2;
+    --muted-foreground: #737373;
+    --accent: rgb(0 0 0 / 0.05);
+    --accent-foreground: #1a1a1a;
+    --destructive: #fa5151;
+    --destructive-foreground: #ffffff;
+    --success: #07c160;
+    --success-foreground: #ffffff;
+    --warning: #fa9d3b;
+    --warning-foreground: #1a1a1a;
+    --info: #296bef;
+    --info-foreground: #ffffff;
+    --border: #e5e5e5;
+    --input: #e5e5e5;
+    --ring: #a3a3a3;
     --radius: 0.5rem;
+    --brand: #07c160;
+    --brand-foreground: #ffffff;
+    /* 手机端专用：侧栏页底（比内容区低一级） */
+    --phone-sidebar: #f5f5f5;
+    /* AD UI 按钮阴影：一圈 1px 描边 + 2px 投影 */
+    --phone-shadow-control: 0 0 0 1px rgb(0 0 0 / 0.06), 0 2px 4px 0 rgb(0 0 0 / 0.1);
   }
 
   .dark {
     color-scheme: dark;
-    --background: oklch(0.145 0.014 285.82);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.145 0.014 285.82);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.145 0.014 285.82);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.205 0.014 285.82);
-    --secondary: oklch(0.269 0.014 285.82);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0.014 285.82);
-    --muted-foreground: oklch(0.708 0.014 285.82);
-    --accent: oklch(0.269 0.014 285.82);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.396 0.141 25.72);
-    --destructive-foreground: oklch(0.985 0 0);
-    --success: oklch(0.527 0.154 150.07);
-    --success-foreground: oklch(0.985 0 0);
-    --warning: oklch(0.769 0.189 70.08);
-    --warning-foreground: oklch(0.205 0.014 285.82);
-    --info: oklch(0.623 0.214 259.81);
-    --info-foreground: oklch(0.985 0 0);
-    --border: oklch(0.269 0.014 285.82);
-    --input: oklch(0.269 0.014 285.82);
-    --ring: oklch(0.439 0.014 285.82);
+    --background: #191919;
+    --foreground: #e6e6e6;
+    --card: #191919;
+    --card-foreground: #e6e6e6;
+    --popover: #232323;
+    --popover-foreground: #e6e6e6;
+    --primary: #e6e6e6;
+    --primary-foreground: #111111;
+    --secondary: #262626;
+    --secondary-foreground: #e6e6e6;
+    --muted: #262626;
+    --muted-foreground: #8c8c8c;
+    --accent: rgb(255 255 255 / 0.07);
+    --accent-foreground: #e6e6e6;
+    --destructive: #fa5151;
+    --destructive-foreground: #ffffff;
+    --success: #07c160;
+    --success-foreground: #ffffff;
+    --warning: #fa9d3b;
+    --warning-foreground: #111111;
+    --info: #3d7ff5;
+    --info-foreground: #ffffff;
+    --border: #2c2c2c;
+    --input: #2c2c2c;
+    --ring: #5c5c5c;
+    --brand: #07c160;
+    --brand-foreground: #ffffff;
+    --phone-sidebar: #111111;
+    --phone-shadow-control: 0 0 0 1px rgb(255 255 255 / 0.06), 0 2px 4px 0 rgb(0 0 0 / 0.4);
   }
 }
 
@@ -289,16 +311,20 @@
     height 450ms var(--ease-smooth-out),
     opacity 200ms var(--ease-smooth-out);
 }
+/* 选中底：本站分段/标签的选中态即微信绿 15% */
 .phone-session-indicator {
-  background: color-mix(in oklab, var(--brand) 10%, transparent);
+  background: rgb(7 193 96 / 0.12);
 }
 .dark .phone-session-indicator {
-  background: color-mix(in oklab, var(--brand) 16%, transparent);
+  background: rgb(7 193 96 / 0.16);
 }
 .phone-seg-thumb {
   border-radius: calc(var(--radius-lg, 0.5rem) - 2px);
   background: var(--background);
-  box-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 0 0 0.5px rgb(0 0 0 / 0.04);
+  box-shadow: var(--phone-shadow-control);
+}
+.dark .phone-seg-thumb {
+  background: #3a3a3a;
 }
 .phone-seg-item {
   transition: color 300ms var(--ease-smooth-out);
@@ -326,8 +352,9 @@
   opacity: 1;
   visibility: visible;
   transform: none;
+  /* 微信广告官网主曲线：前一半时间走完 95% 位移，余下缓冲 */
   transition:
-    transform 380ms var(--ease-smooth-out),
+    transform 420ms cubic-bezier(0.16, 0.9, 0.21, 0.98),
     opacity 240ms var(--ease-smooth-out) 30ms,
     visibility 0ms linear 0ms;
 }
@@ -694,7 +721,8 @@
   inset: 5px;
   border-radius: 50%;
   background: var(--brand);
-  box-shadow: none;
+  /* AD UI 彩色按钮阴影：深色描边 + 轻投影，绿色实心按钮在白底上才立得住 */
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.08), 0 2px 4px 0 rgb(0 0 0 / 0.1);
   transition: background-color var(--phone-press-duration) var(--phone-ease);
 }
 
@@ -745,3 +773,59 @@
   }
 }
 
+/* 侧栏页底比内容区低一级（本站 #F5F5F5 页底 + 白卡片）；填充色相应加深一档才看得见 */
+.phone-sidebar-surface {
+  background: var(--phone-sidebar);
+  --muted: #ebebeb;
+}
+.dark .phone-sidebar-surface {
+  --muted: #1f1f1f;
+}
+
+/*
+ * 底部弹层（复用桌面 sheet 组件，这里只覆盖手机端表现，不改共享组件）：
+ * - 去掉遮罩的 backdrop-blur：模糊滤镜在 Android 上掉帧（《Web 流畅界面建议》）；
+ * - 从屏幕底边整体滑入而不是浮现 2rem：来处与去处一致（空间一致性）；
+ *   打开 380ms、关闭 220ms，均 ease-out；
+ * - 主界面后退一级：轻微缩小并加圆角（《关于 Drawer 组件的发散》《交互动画的层级设计》），
+ *   表明当前只有弹层可操作。
+ */
+[data-slot="sheet-backdrop"] {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  transition: opacity 300ms var(--ease-smooth-out);
+}
+[data-slot="sheet-backdrop"][data-ending-style] {
+  transition-duration: 160ms;
+}
+[data-slot="sheet-popup"][class*="row-start-2"] {
+  transition:
+    translate 380ms var(--ease-smooth-out),
+    opacity 200ms var(--ease-smooth-out);
+}
+[data-slot="sheet-popup"][class*="row-start-2"][data-starting-style] {
+  translate: 0 100%;
+  opacity: 1;
+}
+[data-slot="sheet-popup"][class*="row-start-2"][data-ending-style] {
+  translate: 0 100%;
+  opacity: 1;
+  transition-duration: 220ms;
+}
+.phone-app-root {
+  transition:
+    scale 380ms var(--ease-smooth-out),
+    border-radius 380ms var(--ease-smooth-out);
+}
+body:has([data-slot="sheet-popup"]:not([data-ending-style])) .phone-app-root {
+  scale: 0.97;
+  border-radius: 14px;
+  overflow: hidden;
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="sheet-popup"],
+  [data-slot="sheet-backdrop"],
+  .phone-app-root {
+    transition: none !important;
+  }
+}
