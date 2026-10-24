@@ -815,11 +815,3 @@
 .phone-sprout {
   will-change: transform;
 }
-
-/* 底部统计行横向可滚，滚动条在手势条旁边很扎眼 */
-.phone-dock * {
-  scrollbar-width: none;
-}
-.phone-dock *::-webkit-scrollbar {
-  display: none;
-}
