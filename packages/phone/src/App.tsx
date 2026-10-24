@@ -15,7 +15,7 @@ import { parseCompactCommand } from '@shared/compactCommand';
 import { emptyGuestView } from '@shared/pair/guestProjection';
 import type { AttachedImage } from '@shared/types/agent';
 import { PanelLeft, Smartphone } from 'lucide-react';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { applyAppBadge, attentionBadgeCount } from './attentionBadge';
 import { BotArtifactsContext } from './BotArtifacts';
@@ -1144,10 +1144,13 @@ export function App() {
         connectionLabel={connectionLabel}
         onClose={() => closeDrawer()}
         onSelect={(id) => {
-          setBotChatId(null);
-          setProcessId(null);
-          setActiveId(id);
           closeDrawer();
+          // 整页聊天的重渲染可中断：侧栏高亮与抽屉收起的动画先拿到帧
+          startTransition(() => {
+            setBotChatId(null);
+            setProcessId(null);
+            setActiveId(id);
+          });
         }}
         onNewConversation={(projectId) => {
           closeDrawer();

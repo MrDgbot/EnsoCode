@@ -142,7 +142,7 @@ export function SessionDrawer({
   groups = [],
   catalog,
   pinnedOrder = [],
-  activeId,
+  activeId: committedActiveId,
   canCreate,
   devices,
   activeDevicePairId,
@@ -155,7 +155,7 @@ export function SessionDrawer({
   pushConfigReady,
   onTogglePush,
   onClose,
-  onSelect,
+  onSelect: commitSelect,
   onNewConversation,
   onSwitchDevice,
   onAddDevice,
@@ -177,6 +177,17 @@ export function SessionDrawer({
   const scrimRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
+  // 选中态先走一步：点下去侧栏立刻换选中、高亮立刻滑过去；聊天区的重渲染由上层放进
+  // transition，不再和高亮动画抢同一帧（切换大会话时曾有 80ms 长帧卡住滑动起步）
+  const [pickedId, setPickedId] = useState<string | null>(null);
+  useEffect(() => {
+    setPickedId(null);
+  }, [committedActiveId]);
+  const activeId = pickedId ?? committedActiveId;
+  const onSelect = (id: string) => {
+    setPickedId(id);
+    commitSelect(id);
+  };
   const listIndicatorRef = useSlidingIndicator(listRef, attrSelector('data-session-id', activeId));
   // 折叠 / 展开分组与项目、「显示更多」：条目先淡出再补位，新条目让出空间后错峰淡入
   useEffect(() => {

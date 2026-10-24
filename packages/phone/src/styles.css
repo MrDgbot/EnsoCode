@@ -789,3 +789,33 @@
     scale: 1;
   }
 }
+
+/*
+ * 手机端去掉展开 / 流式文字里的模糊滤镜（《Web 流畅界面建议》：filter / blur 动画开销大），
+ * 高像素密度平板上每帧都要重新栅格化。同名关键帧后定义覆盖桌面版，只保留位移 + 透明度。
+ */
+@keyframes t-acc-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes t-stream-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* 会滑动的高亮与浮层提前提升为合成层：主线程忙时动画照样走 */
+.phone-session-indicator,
+.phone-seg-thumb,
+.phone-sprout {
+  will-change: transform;
+}
