@@ -57,6 +57,7 @@ import {
 } from '@/stores/sessions/sessionSwitchSlots';
 import type { StoredDevice } from './deviceList';
 import { useDrawerDrag } from './drawerDrag';
+import { flipOnToggle } from './flipOnToggle';
 import type { PushFailureReason } from './push';
 import { Segmented } from './Segmented';
 import { attrSelector, useSlidingIndicator } from './slidingIndicator';
@@ -177,6 +178,12 @@ export function SessionDrawer({
   const listRef = useRef<HTMLDivElement>(null);
   const footerRef = useRef<HTMLDivElement>(null);
   const listIndicatorRef = useSlidingIndicator(listRef, attrSelector('data-session-id', activeId));
+  // 折叠 / 展开分组与项目、「显示更多」：条目先淡出再补位，新条目让出空间后错峰淡入
+  useEffect(() => {
+    const root = listRef.current;
+    if (!root || botActive) return;
+    return flipOnToggle(root, { items: 'button' });
+  }, [botActive]);
   useDrawerDrag({
     enabled: !docked,
     open,

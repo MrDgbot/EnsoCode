@@ -753,3 +753,39 @@
   }
 }
 
+/*
+ * 触屏按压反馈（《Web 流畅界面建议》《Functional Motion》）：
+ * 平板没有 hover，按下去是唯一的即时回应——列表行、时间线里可点的行轻微缩小（0.98，大块元素取弱值）
+ * 并铺一层浅底；按下瞬时生效，松开用 ease-out 回落。替代系统蓝色点击高亮。
+ */
+@media (pointer: coarse) {
+  .phone-session-list button,
+  .phone-chat-root [data-nav-key] button,
+  .phone-chat-root header button {
+    -webkit-tap-highlight-color: transparent;
+    transition-property: color, background-color, scale;
+    transition-duration: 220ms;
+    transition-timing-function: var(--ease-smooth-out);
+  }
+  .phone-session-list button:active,
+  .phone-chat-root [data-nav-key] button:active,
+  .phone-chat-root header button:active {
+    scale: 0.98;
+    background-color: var(--accent);
+    transition-duration: 60ms;
+  }
+
+  /* 主滚动区不留原生滚动条的占位（触屏本就靠手势滚动） */
+  .phone-app-root *,
+  .phone-chat-root * {
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-session-list button:active,
+  .phone-chat-root [data-nav-key] button:active,
+  .phone-chat-root header button:active {
+    scale: 1;
+  }
+}

@@ -40,6 +40,7 @@ import { buildTimeline } from '@/stores/sessions/timeline';
 import { BotArtifacts } from './BotArtifacts';
 import { phoneChatHost } from './chatHost';
 import type { ConnState, SessionView } from './client';
+import { flipOnToggle } from './flipOnToggle';
 import { compressWithin, imageBudget } from './image';
 import { appendEchoMessages, type QueueSendEcho } from './queueSendEcho';
 import { readOnlyBanner } from './readOnly';
@@ -113,6 +114,13 @@ interface Props {
 export function ChatScreen(props: Props) {
   const { view, sessionId } = props;
   const timelineRef = useRef<MessageTimelineHandle>(null);
+  const chatRootRef = useRef<HTMLDivElement>(null);
+  // 时间线里点开 / 收起推理、工具详情：下方各行连续让位，不整段跳变
+  useEffect(() => {
+    const root = chatRootRef.current;
+    if (!root) return;
+    return flipOnToggle(root, { items: '[data-nav-key]', trigger: '[data-nav-key]' });
+  }, []);
   const [sending, setSending] = useState(false);
   // tabs sliding：pill 位置/尺寸由 JS 测量写入，CSS 负责补间；首帧挂起过渡避免从 0 宽飞入
   const tabsRef = useRef<HTMLDivElement>(null);
@@ -280,7 +288,7 @@ export function ChatScreen(props: Props) {
 
   return (
     <ChatHostContext.Provider value={host}>
-      <div className="phone-chat-root flex h-full min-h-0 flex-col">
+      <div ref={chatRootRef} className="phone-chat-root flex h-full min-h-0 flex-col">
         <header className="flex shrink-0 items-center gap-1 border-b bg-background px-2 py-2 pt-safe">
           {bot?.onBack || !props.drawerDocked ? (
             <button
