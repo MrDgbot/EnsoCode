@@ -7,6 +7,7 @@
     "dev": "pnpm --filter @enso/phone build && wrangler dev",
     "release": "pnpm --filter @enso/phone build && wrangler deploy",
     "release:dev": "pnpm --filter @enso/phone build && wrangler deploy -c wrangler.dev.jsonc",
+    "release:augmentx": "pnpm --filter @enso/phone build && wrangler deploy -c wrangler.augmentx.jsonc",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
