@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { installGestureBarInset } from './gestureBarInset';
 import { installStatusBarOverlapGuard } from './statusBarOverlap';
 import { installElectronApiShim } from './stubs/electron-api';
 import { initTheme } from './theme';
@@ -17,6 +18,7 @@ if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
 
 // iOS 独立 PWA 偶发钻到状态栏下被系统模糊盖住标题：检测到才退出 viewport-fit=cover
 installStatusBarOverlapGuard();
+installGestureBarInset();
 
 /*
  * 不用 JS 干预视口高度：布局直接吃 CSS 的 100dvh。
