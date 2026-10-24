@@ -331,13 +331,13 @@ export function SessionDrawer({
         className={cn(
           'flex shrink-0 flex-col border-r bg-background',
           docked
-            ? 'relative h-full w-72'
+            ? 'relative h-full w-[calc(18rem+var(--phone-inset-left,0px))]'
             : 'phone-drawer fixed inset-y-0 left-0 z-50 w-[82vw] max-w-xs'
         )}
       >
         <div
           className={cn(
-            'flex h-12 shrink-0 items-center justify-between px-3 pt-safe',
+            'flex h-12 shrink-0 items-center justify-between pt-safe pr-3 pl-[calc(0.75rem+var(--phone-inset-left,0px))]',
             groups.length === 0 && 'border-b'
           )}
         >
@@ -388,7 +388,7 @@ export function SessionDrawer({
           )}
         </div>
         {!botActive && groups.length > 0 && (
-          <div className="shrink-0 border-b px-3 pb-2">
+          <div className="shrink-0 border-b pr-3 pb-2 pl-[calc(0.75rem+var(--phone-inset-left,0px))]">
             <Select
               items={[
                 { value: ALL_GROUP_ID, label: '全部' },
@@ -437,7 +437,7 @@ export function SessionDrawer({
         ) : (
           <div
             ref={listRef}
-            className="phone-session-list relative isolate min-h-0 flex-1 space-y-2 overflow-y-auto p-2"
+            className="phone-session-list relative isolate min-h-0 flex-1 space-y-2 overflow-y-auto py-2 pr-2 pl-[calc(0.5rem+var(--phone-inset-left,0px))]"
           >
             <div
               ref={listIndicatorRef}
@@ -584,7 +584,7 @@ export function SessionDrawer({
 
         {/* 与桌面一致：归档栏固定底部（滚动区外），列表在折叠头上方向上展开 */}
         {!botActive && archivedSessions.length > 0 && (
-          <div className="shrink-0 border-t p-2">
+          <div className="shrink-0 border-t py-2 pr-2 pl-[calc(0.5rem+var(--phone-inset-left,0px))]">
             {archivedOpen && (
               <div className="phone-session-list mb-0.5 flex max-h-64 flex-col overflow-y-auto">
                 {archivedSessions.map((session) => (
@@ -628,13 +628,16 @@ export function SessionDrawer({
           底栏只留一行：当前电脑 + 连接状态 + 设置。主题/推送/设备管理收进「发芽」浮层，
           从设置按钮处长出——低频设置不再常驻占掉列表三分之一的高度。
         */}
-        <div ref={footerRef} className="relative shrink-0 border-t p-2 pb-safe">
+        <div
+          ref={footerRef}
+          className="relative shrink-0 border-t pt-2 pr-2 pb-safe pl-[calc(0.5rem+var(--phone-inset-left,0px))]"
+        >
           <div
             data-open={settingsOpen}
             role="dialog"
             aria-label="设置"
             aria-hidden={!settingsOpen}
-            className="phone-sprout absolute right-2 bottom-full left-2 z-10 mb-1 max-h-[70vh] space-y-1 overflow-y-auto rounded-xl border bg-popover p-2 text-popover-foreground shadow-lg"
+            className="phone-sprout absolute right-2 bottom-full left-[calc(0.5rem+var(--phone-inset-left,0px))] z-10 mb-1 max-h-[70vh] space-y-1 overflow-y-auto rounded-xl border bg-popover p-2 text-popover-foreground shadow-lg"
           >
             {!confirmUnpair && (
               <div className="flex items-center gap-2 px-2 py-1.5">
