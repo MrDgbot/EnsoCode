@@ -95,13 +95,8 @@ export function useDrawerDrag({
       e.preventDefault();
       offset = dx;
       let progress = open ? 1 + dx / width : dx / width;
-      // 越过全开时用 iOS 橡皮筋公式加阻尼（《如何依靠 transform 模拟 iOS 原生滚动体验》，c = 0.55）：
-      // 越拉越紧且永不越过 d，比线性系数更像实物
-      if (progress > 1) {
-        const over = (progress - 1) * width;
-        const d = width * 0.25;
-        progress = 1 + ((1 - 1 / ((over * 0.55) / d + 1)) * d) / width;
-      }
+      // 越过全开时加阻尼，提示已到边界
+      if (progress > 1) progress = 1 + (progress - 1) * 0.15;
       paint(Math.max(0, progress));
       samples.push({ x, t: e.timeStamp });
       if (samples.length > 6) samples.shift();
