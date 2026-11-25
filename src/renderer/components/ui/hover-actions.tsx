@@ -14,7 +14,7 @@ export function HoverActions({ className, ...props }: React.ComponentProps<'div'
     <div
       data-slot="hover-actions"
       className={cn(
-        'pointer-events-none absolute inset-y-0 right-0 flex items-center gap-0.5 rounded-r-[inherit] pr-1 pl-8 opacity-0 transition-opacity duration-100',
+        'pointer-events-none absolute inset-y-0 right-0 flex items-center gap-0.5 rounded-r-[inherit] pr-1 pl-8 opacity-0 transition-opacity duration-100 motion-reduce:transition-none',
         'bg-linear-to-l from-[color-mix(in_oklab,var(--background),var(--foreground)_5%)] from-60% to-transparent',
         'group-hover/row:pointer-events-auto group-hover/row:opacity-100 group-has-[:focus-visible]/row:pointer-events-auto group-has-[:focus-visible]/row:opacity-100',
         className

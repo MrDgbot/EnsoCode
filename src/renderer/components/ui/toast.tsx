@@ -76,7 +76,7 @@ function Toasts({ position = 'bottom-right' }: { position: ToastPosition }) {
           return (
             <Toast.Root
               className={cn(
-                'absolute z-[calc(9999-var(--toast-index))] h-(--toast-calc-height) w-full rounded-lg border bg-popover bg-clip-padding text-popover-foreground shadow-lg [transition:transform_.5s_cubic-bezier(.22,1,.36,1),opacity_.5s,height_.15s] before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:bg-clip-border dark:before:shadow-[0_-1px_--theme(--color-white/8%)]',
+                'absolute z-[calc(9999-var(--toast-index))] h-(--toast-calc-height) w-full rounded-lg border bg-popover bg-clip-padding text-popover-foreground shadow-lg [transition:transform_var(--toast-open)_var(--toast-ease),opacity_var(--toast-open)_var(--toast-ease),height_150ms_var(--toast-ease)] data-ending-style:[transition-duration:var(--toast-close)] data-swiping:transition-none motion-reduce:transition-none before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-lg)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] dark:bg-clip-border dark:before:shadow-[0_-1px_--theme(--color-white/8%)]',
                 // 基于 data-position 的基础定位
                 'data-[position*=right]:right-0 data-[position*=right]:left-auto',
                 'data-[position*=left]:right-auto data-[position*=left]:left-0',
@@ -117,6 +117,7 @@ function Toasts({ position = 'bottom-right' }: { position: ToastPosition }) {
                 'data-expanded:data-ending-style:data-[swipe-direction=down]:transform-[translateY(calc(var(--toast-swipe-movement-y)+100%+var(--toast-inset)))]'
               )}
               data-position={position}
+              data-slot="toast-root"
               key={toast.id}
               swipeDirection={
                 position.includes('center')
@@ -131,7 +132,7 @@ function Toasts({ position = 'bottom-right' }: { position: ToastPosition }) {
                 {/* 关闭按钮 - 右上角 */}
                 <Toast.Close
                   aria-label="Close notification"
-                  className="absolute right-2 top-2 shrink-0 rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className="absolute right-2 top-2 shrink-0 rounded p-0.5 text-muted-foreground transition-colors duration-150 hover:bg-muted hover:text-foreground"
                   data-slot="toast-close"
                 >
                   <XIcon className="h-4 w-4" />
@@ -236,7 +237,7 @@ function AnchoredToasts() {
             >
               <Toast.Root
                 className={cn(
-                  'relative text-balance border bg-popover bg-clip-padding text-popover-foreground text-xs transition-[scale,opacity] before:pointer-events-none before:absolute before:inset-0 before:shadow-[0_1px_--theme(--color-black/4%)] data-ending-style:scale-98 data-starting-style:scale-98 data-ending-style:opacity-0 data-starting-style:opacity-0 dark:bg-clip-border dark:before:shadow-[0_-1px_--theme(--color-white/8%)]',
+                  'relative text-balance border bg-popover bg-clip-padding text-popover-foreground text-xs transition-[scale,opacity] duration-200 data-ending-style:duration-[var(--duration-quick)] [transition-timing-function:var(--ease-smooth-out)] before:pointer-events-none before:absolute before:inset-0 before:shadow-[0_1px_--theme(--color-black/4%)] data-ending-style:scale-98 data-starting-style:scale-98 data-ending-style:opacity-0 data-starting-style:opacity-0 motion-reduce:transition-none dark:bg-clip-border dark:before:shadow-[0_-1px_--theme(--color-white/8%)]',
                   tooltipStyle
                     ? 'rounded-md shadow-black/5 shadow-md before:rounded-[calc(var(--radius-md)-1px)]'
                     : 'rounded-lg shadow-lg before:rounded-[calc(var(--radius-lg)-1px)]'

@@ -65,7 +65,7 @@ function SelectPopup({
         sideOffset={sideOffset}
       >
         <SelectPrimitive.Popup
-          className="origin-(--transform-origin) transition-[scale,opacity] has-data-[side=none]:scale-100 has-data-starting-style:scale-98 has-data-starting-style:opacity-0 has-data-[side=none]:transition-none"
+          className="origin-(--transform-origin) transition-[scale,opacity] duration-200 data-ending-style:duration-[var(--dropdown-close-dur)] [transition-timing-function:var(--dropdown-ease)] has-data-[side=none]:scale-100 has-data-starting-style:scale-[var(--scale-small)] has-data-starting-style:opacity-0 has-data-ending-style:scale-[var(--scale-tiny)] has-data-ending-style:opacity-0 has-data-[side=none]:transition-none motion-reduce:transition-none"
           data-slot="select-popup"
           {...props}
         >

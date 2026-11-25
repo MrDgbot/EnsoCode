@@ -19,8 +19,7 @@ const Menu = MenuPrimitive.Root;
 const MenuPortal = MenuPrimitive.Portal;
 
 export const MENU_POPUP_CLASS =
-  // 优化动画：150ms，使用模拟 Spring 的 cubic-bezier 曲线
-  "relative flex not-[class*='w-']:min-w-32 origin-(--transform-origin) rounded-xl border bg-popover bg-clip-padding shadow-xl outline-none transition-[scale,opacity] duration-150 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-xl)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] focus:outline-none has-data-starting-style:scale-95 has-data-starting-style:opacity-0 has-data-ending-style:scale-95 has-data-ending-style:opacity-0 dark:bg-clip-border dark:before:shadow-[0_-1px_--theme(--color-white/8%)]";
+  "relative flex not-[class*='w-']:min-w-32 origin-(--transform-origin) rounded-xl border bg-popover bg-clip-padding shadow-xl outline-none transition-[scale,opacity] duration-200 data-ending-style:duration-[var(--dropdown-close-dur)] [transition-timing-function:var(--dropdown-ease)] before:pointer-events-none before:absolute before:inset-0 before:rounded-[calc(var(--radius-xl)-1px)] before:shadow-[0_1px_--theme(--color-black/4%)] focus:outline-none has-data-starting-style:scale-[var(--dropdown-pre-scale)] has-data-starting-style:opacity-0 has-data-ending-style:scale-[var(--dropdown-closing-scale)] has-data-ending-style:opacity-0 motion-reduce:transition-none dark:bg-clip-border dark:before:shadow-[0_-1px_--theme(--color-white/8%)]";
 
 function MenuTrigger(props: MenuPrimitive.Trigger.Props) {
   return <MenuPrimitive.Trigger data-slot="menu-trigger" {...props} />;
@@ -332,10 +331,10 @@ function TitleBarMenuPopup({
           className={cn(
             // 基础样式
             "relative flex not-[class*='w-']:min-w-32 rounded-md border bg-popover shadow-lg outline-none",
-            // 优化动画：150ms，使用模拟 Spring 的 cubic-bezier 曲线
-            'origin-(--transform-origin) transition-[scale,opacity] duration-150 [transition-timing-function:cubic-bezier(0.34,1.56,0.64,1)]',
-            'has-data-starting-style:scale-95 has-data-starting-style:opacity-0',
-            'has-data-ending-style:scale-95 has-data-ending-style:opacity-0',
+            'origin-(--transform-origin) transition-[scale,opacity] duration-200 data-ending-style:duration-[var(--dropdown-close-dur)] [transition-timing-function:var(--dropdown-ease)]',
+            'has-data-starting-style:scale-[var(--dropdown-pre-scale)] has-data-starting-style:opacity-0',
+            'has-data-ending-style:scale-[var(--dropdown-closing-scale)] has-data-ending-style:opacity-0',
+            'motion-reduce:transition-none',
             // 标题栏菜单使用更小的字体
             '[&_[data-slot=menu-item]]:text-xs [&_[data-slot=menu-item]]:min-h-7 [&_[data-slot=menu-item]]:py-1.5',
             '[&_[data-slot=menu-shortcut]]:text-[10px]',
