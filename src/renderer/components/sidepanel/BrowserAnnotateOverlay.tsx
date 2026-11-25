@@ -342,7 +342,7 @@ export function DesignHintBar({
         </button>
         <span
           data-hint=""
-          className="truncate text-[12px] text-muted-foreground transition-all duration-150"
+          className="truncate text-[12px] text-muted-foreground transition-colors duration-150"
         >
           {renderTokens(currentHint)}
         </span>
@@ -1928,7 +1928,7 @@ export function BrowserAnnotateStageOverlay({
             aria-label={submitLabel}
             title={`${submitLabel} (Enter)`}
             onClick={() => void handleSubmit()}
-            className="flex h-7 items-center gap-1.5 rounded-lg bg-[#3a96dd] px-3 text-[11px] font-medium text-white shadow-xs transition-all hover:bg-[#3286c9] active:scale-[0.98] disabled:bg-muted disabled:text-muted-foreground disabled:opacity-50"
+            className="flex h-7 items-center gap-1.5 rounded-lg bg-[#3a96dd] px-3 text-[11px] font-medium text-white shadow-xs transition-[background-color,color,transform,opacity] duration-150 [transition-timing-function:var(--ease-smooth-out)] hover:bg-[#3286c9] active:scale-[0.98] motion-reduce:transition-none motion-reduce:active:scale-100 disabled:bg-muted disabled:text-muted-foreground disabled:opacity-50"
           >
             {submitAction === 'add-to-stack' ? (
               <Plus className="h-3 w-3" />

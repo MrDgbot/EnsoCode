@@ -3,6 +3,7 @@ import { BUILTIN_AGENT_TYPES } from '@shared/types/assets';
 import { Bot, MessageCircle, Pencil, Plus, RefreshCw, X, Zap } from 'lucide-react';
 import * as React from 'react';
 import { ChromeRow } from '@/components/app/WindowChrome';
+import { ConfirmDialog } from '@/components/chat/ConfirmDialog';
 import { ConversationStatusIndicator } from '@/components/chat/ConversationStatusIndicator';
 import { ConversationTitleEdit } from '@/components/chat/ConversationTitleEdit';
 import { reloadConversationFromMenu } from '@/components/chat/reloadConversationAction';
@@ -65,6 +66,9 @@ export function CoworkerTabs({
     selectCoworkerTabConversations(state.conversations, parentId)
   );
   const [hiring, setHiring] = React.useState(false);
+  const [pendingDismiss, setPendingDismiss] = React.useState<{ id: string; name: string } | null>(
+    null
+  );
 
   const tabClass = (active: boolean) =>
     cn(
@@ -91,16 +95,16 @@ export function CoworkerTabs({
             pendingApprovalCount: coworker.pendingApprovalCount,
             pendingAskCount: coworker.pendingAskCount,
           });
+          const coworkerLabel =
+            coworker.title ||
+            coworker.child?.agentInstanceName ||
+            coworker.coworkerName ||
+            coworker.id;
           return (
             <div key={coworker.id} className="group/tab relative shrink-0">
               <RenameableTab
                 id={coworker.id}
-                label={
-                  coworker.title ||
-                  coworker.child?.agentInstanceName ||
-                  coworker.coworkerName ||
-                  coworker.id
-                }
+                label={coworkerLabel}
                 className={cn(
                   tabClass(displayedId === coworker.id),
                   displayedId !== coworker.id && 'group-hover/tab:bg-muted/50'
@@ -113,7 +117,7 @@ export function CoworkerTabs({
                   )
                 }
                 trailing={
-                  <span className="inline-flex h-3 w-3 shrink-0 items-center justify-center group-hover/tab:invisible">
+                  <span className="inline-flex h-3 w-3 shrink-0 items-center justify-center group-hover/tab:invisible group-focus-within/tab:invisible">
                     <ConversationStatusIndicator tone={tone} size="sm" />
                   </span>
                 }
@@ -121,16 +125,13 @@ export function CoworkerTabs({
                 reloading={coworker.reloading}
                 onSelect={() => useSessionsStore.getState().selectTab(parentId, coworker.id)}
               />
-              {/* 关闭覆在状态灯槽上，hover 替换而不拉宽 tab */}
+              {/* 关闭覆在状态灯槽上，hover / focus-within 渐显而不拉宽 tab */}
               <button
                 type="button"
+                aria-label={t('Dismiss coworker')}
                 title={t('Dismiss coworker')}
-                className="absolute top-1/2 right-2 hidden h-3 w-3 -translate-y-1/2 items-center justify-center text-muted-foreground hover:text-destructive group-hover/tab:flex"
-                onClick={() => {
-                  if (window.confirm(t('Dismiss this coworker? Its session will be closed.'))) {
-                    void useSessionsStore.getState().dismissCoworkerFromUI(parentId, coworker.id);
-                  }
-                }}
+                className="pointer-events-none absolute top-1/2 right-2 flex h-3 w-3 -translate-y-1/2 items-center justify-center text-muted-foreground opacity-0 transition-opacity duration-100 hover:text-destructive group-hover/tab:pointer-events-auto group-hover/tab:opacity-100 group-focus-within/tab:pointer-events-auto group-focus-within/tab:opacity-100 motion-reduce:transition-none"
+                onClick={() => setPendingDismiss({ id: coworker.id, name: coworkerLabel })}
               >
                 <X className="h-3 w-3" />
               </button>
@@ -149,6 +150,24 @@ export function CoworkerTabs({
       </div>
       {trailing}
       {hiring && <HireCoworkerDialog parentId={parentId} onClose={() => setHiring(false)} />}
+      <ConfirmDialog
+        open={pendingDismiss !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDismiss(null);
+        }}
+        title={
+          pendingDismiss
+            ? t('Dismiss {{name}}?', { name: pendingDismiss.name })
+            : t('Dismiss coworker')
+        }
+        description={t('Its session will be closed.')}
+        confirmLabel={t('Dismiss coworker')}
+        onConfirm={() => {
+          if (pendingDismiss) {
+            void useSessionsStore.getState().dismissCoworkerFromUI(parentId, pendingDismiss.id);
+          }
+        }}
+      />
     </ChromeRow>
   );
 }

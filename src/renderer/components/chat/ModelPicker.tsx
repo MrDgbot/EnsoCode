@@ -1302,7 +1302,7 @@ export function ModelPicker({
               disabled={visibleLevels.length === 1}
               onClick={() => onThinkingChange(entry)}
               className={cn(
-                'rounded-[5px] px-2.5 py-0.5 text-[11px] leading-4 transition-all disabled:pointer-events-none',
+                'rounded-[5px] px-2.5 py-0.5 text-[11px] leading-4 transition-[background-color,color,box-shadow] duration-150 [transition-timing-function:var(--ease-smooth-out)] motion-reduce:transition-none disabled:pointer-events-none',
                 active
                   ? 'bg-background font-medium text-primary shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'

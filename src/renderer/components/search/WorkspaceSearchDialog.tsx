@@ -17,6 +17,7 @@ import {
 import {
   Bot,
   Globe,
+  LoaderCircle,
   type LucideIcon,
   MessageCircle,
   Plus,
@@ -177,6 +178,8 @@ export function WorkspaceSearchDialog({
   const trimmed = query.trim();
   const coldKey = `${scope}\n${currentProjectId}\n${trimmed}`;
   const coldHits = cold?.key === coldKey ? cold.hits : NO_HITS;
+  const coldPending =
+    open && trimmed.length > 0 && Boolean(currentProjectId) && cold?.key !== coldKey;
 
   const docs = useMemo(() => {
     if (!open) return [];
@@ -440,14 +443,16 @@ export function WorkspaceSearchDialog({
       tabIndex={-1}
       data-search-scope={scope}
       title={t('Switch scope')}
-      className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2 text-muted-foreground text-xs transition-colors hover:bg-accent hover:text-foreground"
+      className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2 text-muted-foreground text-xs transition-[background-color,color,transform] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
       onPointerDown={(event) => {
         event.preventDefault();
         event.stopPropagation();
         setScope((current) => cycleWorkspaceSearchScope(current, event.shiftKey));
       }}
     >
-      {t(SCOPE_LABELS[scope])}
+      <span key={scope} className="t-text-swap">
+        {t(SCOPE_LABELS[scope])}
+      </span>
       <Kbd className="h-4 min-w-4 text-[10px]">⇥</Kbd>
     </button>
   );
@@ -467,17 +472,37 @@ export function WorkspaceSearchDialog({
             endAddon={scopeChip}
           />
           <CommandPanel>
-            {empty && (
-              <CommandEmpty>
-                {t('No matching results')}
-                {scope !== 'all-including-archived' && (
-                  <span className="mt-2 flex items-center justify-center gap-1.5 text-xs">
-                    <Kbd>⇥</Kbd>
-                    {t(scope === 'project' ? 'Search all projects' : 'Include archived')}
+            {empty &&
+              (coldPending ? (
+                <CommandEmpty>
+                  <span className="inline-flex items-center justify-center gap-1.5 text-muted-foreground">
+                    <LoaderCircle className="size-3.5 animate-spin motion-reduce:animate-none" />
+                    {t('Searching history…')}
                   </span>
-                )}
-              </CommandEmpty>
-            )}
+                </CommandEmpty>
+              ) : (
+                <CommandEmpty>
+                  {t('No matching results')}
+                  {scope !== 'all-including-archived' ? (
+                    <button
+                      type="button"
+                      onClick={() => setScope((current) => cycleWorkspaceSearchScope(current))}
+                      className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
+                    >
+                      <Kbd>⇥</Kbd>
+                      {t(scope === 'project' ? 'Search all projects' : 'Include archived')}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setQuery('')}
+                      className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
+                    >
+                      {t('Clear search')}
+                    </button>
+                  )}
+                </CommandEmpty>
+              ))}
             <CommandList>
               {!trimmed && (
                 <>

@@ -1,4 +1,5 @@
 import { withoutQuoteBlocks } from '@shared/quoteBlock';
+import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowDown, LoaderCircle } from 'lucide-react';
 import type { CSSProperties, KeyboardEvent, ReactNode, Ref } from 'react';
 import {
@@ -18,6 +19,7 @@ import type { SecretaryFaceModel } from '@/components/secretary/useSecretaryFace
 import { useSecretaryFace } from '@/components/secretary/useSecretaryFace';
 import { Button } from '@/components/ui/button';
 import { useI18n } from '@/i18n';
+import { floatingPillVariants } from '@/lib/motion';
 import { overlayGuardActive } from '@/lib/overlayGuard';
 import { cn } from '@/lib/utils';
 import { isLayoutAnimating, useLayoutAnimationStore } from '@/stores/layoutAnimation';
@@ -63,7 +65,7 @@ export const CHAT_COL =
 const FOLD_MOTION_MS = 1000;
 
 /** 空状态容器：挂载后播放错峰入场（texts-reveal，rAF 后加 is-shown 触发过渡） */
-function EmptyReveal({ className, children }: { className?: string; children: ReactNode }) {
+export function EmptyReveal({ className, children }: { className?: string; children: ReactNode }) {
   const [shown, setShown] = useState(false);
   useEffect(() => {
     const raf = requestAnimationFrame(() => setShown(true));
@@ -987,16 +989,25 @@ export function MessageTimeline({
               itemContent={(index, item) => renderRow(item, index - firstItemIndex)}
             />
           )}
-          {!atBottom && items.length > 0 && (
-            <button
-              type="button"
-              onClick={scrollToBottom}
-              className="absolute bottom-4 left-1/2 z-10 inline-flex h-7 -translate-x-1/2 items-center gap-1.5 rounded-full border bg-card px-3 text-xs text-muted-foreground shadow-float transition-colors hover:text-foreground"
-            >
-              <ArrowDown className="h-3 w-3" />
-              {t('Scroll to bottom')}
-            </button>
-          )}
+          <AnimatePresence>
+            {!atBottom && items.length > 0 && (
+              <div className="pointer-events-none absolute inset-x-0 bottom-4 z-10 flex justify-center">
+                <motion.button
+                  key="scroll-to-bottom"
+                  type="button"
+                  variants={floatingPillVariants}
+                  initial="initial"
+                  animate="animate"
+                  exit="exit"
+                  onClick={scrollToBottom}
+                  className="pointer-events-auto inline-flex h-7 items-center gap-1.5 rounded-full border bg-card px-3 text-xs text-muted-foreground shadow-float transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100"
+                >
+                  <ArrowDown className="h-3 w-3" />
+                  {t('Scroll to bottom')}
+                </motion.button>
+              </div>
+            )}
+          </AnimatePresence>
         </div>
       </ToolHoldProvider>
     </ChatSearchHighlightContext.Provider>
@@ -1092,7 +1103,7 @@ const TIMELINE_COMPONENTS = { List: TimelineList, Header: TimelineHeader, Footer
 function LoadingDots() {
   return (
     <span className="relative flex size-[22px] shrink-0 items-center justify-center">
-      <span className="absolute size-2 animate-ping rounded-full bg-brand/50" />
+      <span className="absolute size-2 animate-ping rounded-full bg-brand/50 motion-reduce:animate-none" />
       <span className="relative size-2 rounded-full bg-brand" />
     </span>
   );
@@ -1119,6 +1130,21 @@ const ElapsedTimer = memo(function ElapsedTimer({ since }: { since: number }) {
   );
 });
 
+function RowErrorFallback({ itemKey, onRetry }: { itemKey: string; onRetry: () => void }) {
+  const { t } = useI18n();
+  return (
+    <div
+      title={itemKey}
+      className="flex items-center justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-1.5 text-xs text-destructive"
+    >
+      <span>{t("Couldn't display this message")}</span>
+      <Button type="button" size="xs" variant="outline" onClick={onRetry}>
+        {t('Retry')}
+      </Button>
+    </div>
+  );
+}
+
 /** 单行渲染兜底：一条消息渲染崩溃不拖垮整个时间线 */
 class RowErrorBoundary extends Component<
   { itemKey: string; children: ReactNode },
@@ -1140,9 +1166,10 @@ class RowErrorBoundary extends Component<
   render(): ReactNode {
     if (this.state.failed) {
       return (
-        <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-1.5 text-xs text-destructive">
-          message render failed · {this.props.itemKey}
-        </p>
+        <RowErrorFallback
+          itemKey={this.props.itemKey}
+          onRetry={() => this.setState({ failed: false })}
+        />
       );
     }
     return this.props.children;

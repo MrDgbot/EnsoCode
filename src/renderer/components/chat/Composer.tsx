@@ -552,10 +552,14 @@ export function Composer({
   const steerAvailable =
     running && queuedCount > 0 && onSteerQueued !== undefined && enterToSend && !!sendBinding;
   const steerable = steerAvailable && !hasContent && !agentRecipient && !locked;
+  const [privacyShakeTick, setPrivacyShakeTick] = useState(0);
   const privacyScan = useMemo(
     () => (privacyMasking.enabled && content ? scanUserInput(content, privacyMasking) : null),
     [content, privacyMasking]
   );
+  useEffect(() => {
+    if (!privacyScan?.blocked.length) setPrivacyShakeTick(0);
+  }, [privacyScan?.blocked.length]);
 
   const handleSend = () => {
     if (!hasContent) return;
@@ -570,6 +574,7 @@ export function Composer({
       ? scanUserInput(payload.text, privacyMasking).blocked
       : [];
     if (blocked.length > 0) {
+      setPrivacyShakeTick((n) => n + 1);
       addToast({
         type: 'error',
         title: t('Message not sent'),
@@ -1009,11 +1014,11 @@ export function Composer({
             <PluginComposerSlots side="right" {...pluginSlotProps} />
             {privacyScan && (privacyScan.blocked.length > 0 || privacyScan.masked > 0) && (
               <span
+                key={privacyShakeTick > 0 ? `shake-${privacyShakeTick}` : 'steady'}
                 className={cn(
                   'flex shrink-0 items-center gap-1 text-[11px]',
-                  privacyScan.blocked.length > 0
-                    ? 'text-red-600 dark:text-red-400'
-                    : 'text-sky-600 dark:text-sky-400'
+                  privacyScan.blocked.length > 0 ? 'text-destructive-text' : 'text-info',
+                  privacyShakeTick > 0 && privacyScan.blocked.length > 0 && 't-shake-in'
                 )}
                 data-privacy-precheck
               >
@@ -1028,37 +1033,37 @@ export function Composer({
               </span>
             )}
           </div>
-          {/* 生成中且输入为空才显示停止；有草稿则保持发送，方便手机点按钮入队 */}
-          {effectiveBusy && !hasContent ? (
-            <Button
-              variant="outline"
-              size="icon"
-              className="size-8 shrink-0 rounded-full"
-              onClick={onAbort}
-              aria-label={t('Stop')}
-            >
-              <CircleStop className="h-4 w-4" />
-            </Button>
-          ) : (
-            <Button
-              size="icon"
-              className="size-8 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-35"
-              onClick={handleSend}
-              disabled={!hasContent || locked}
-              aria-label={agentRecipient ? t('Send only to the selected Agent') : t('Send')}
-              title={
-                agentRecipient
-                  ? t('Send only to the selected Agent')
-                  : enterToSend
-                    ? sendBinding
-                      ? `${t('Send')} ${formatBinding(sendBinding)}`
-                      : t('Send')
-                    : t('Send')
-              }
-            >
-              <ArrowUp className="h-4 w-4" />
-            </Button>
-          )}
+          {/* 生成中且输入为空才显示停止；有草稿则保持发送并提示排队入队 */}
+          {(() => {
+            const isStopMode = effectiveBusy && !hasContent;
+            const sendLabel = agentRecipient
+              ? t('Send only to the selected Agent')
+              : running && hasContent
+                ? t('Queue message')
+                : t('Send');
+            const sendTitle =
+              enterToSend && sendBinding ? `${sendLabel} ${formatBinding(sendBinding)}` : sendLabel;
+            return (
+              <Button
+                variant={isStopMode ? 'outline' : 'default'}
+                size="icon"
+                className={cn(
+                  'size-8 shrink-0 rounded-full',
+                  !isStopMode &&
+                    'bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-35'
+                )}
+                onClick={isStopMode ? onAbort : handleSend}
+                disabled={isStopMode ? false : !hasContent || locked}
+                aria-label={isStopMode ? t('Stop generation') : sendLabel}
+                title={isStopMode ? t('Stop generation') : sendTitle}
+              >
+                <span className="t-icon-swap" data-state={isStopMode ? 'b' : 'a'}>
+                  <ArrowUp className="t-icon h-4 w-4" data-icon="a" aria-hidden="true" />
+                  <CircleStop className="t-icon h-4 w-4" data-icon="b" aria-hidden="true" />
+                </span>
+              </Button>
+            );
+          })()}
         </div>
       </div>
       <Dialog open={preview !== null} onOpenChange={(open) => !open && setPreview(null)}>

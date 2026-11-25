@@ -86,7 +86,7 @@ export function NavRail({ items, activeKey, onJump }: NavRailProps) {
               >
                 <span
                   className={cn(
-                    'rounded-full transition-all duration-150',
+                    'rounded-full transition-[width,height,background-color,opacity] duration-150 [transition-timing-function:var(--ease-smooth-out)] motion-reduce:transition-none',
                     active || hovered ? 'h-[3px] bg-foreground' : 'h-[2px] bg-muted-foreground/40'
                   )}
                   style={{ width: widthOf(index, active) }}

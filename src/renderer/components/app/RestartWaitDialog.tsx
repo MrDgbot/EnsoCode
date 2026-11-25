@@ -1,5 +1,6 @@
 import { QUIT_REPLY_IDLE_MS, QUIT_REPLY_WAIT_CAP_MS } from '@shared/quitLimits';
 import type { AppExitReason, RestartBlocker, RestartOverlayState } from '@shared/types/ipc';
+import { motion } from 'framer-motion';
 import { Maximize2 } from 'lucide-react';
 import { useEffect } from 'react';
 import { create } from 'zustand';
@@ -14,6 +15,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { useI18n } from '@/i18n';
+import { heightVariants } from '@/lib/motion';
 import { useSessionsStore } from '@/stores/sessions';
 import { BannerBar } from './BannerBar';
 
@@ -203,34 +205,41 @@ export function RestartWaitStrip() {
   const { state, forcing, minimized } = useRestartOverlayStore();
   if (!minimized || state?.phase !== 'waiting') return null;
   return (
-    <BannerBar>
-      <Spinner className="h-3.5 w-3.5 shrink-0 text-blue-500" />
-      <button
-        type="button"
-        onClick={() => setMinimized(false)}
-        className="min-w-0 flex-1 truncate text-left"
-      >
-        {t(EXIT_STRIPS[state.exit])}
-        {state.blockers?.length
-          ? t(' · waiting for {{count}} sessions', { count: state.blockers.length })
-          : ''}
-      </button>
-      <button
-        type="button"
-        disabled={forcing}
-        onClick={forceQuit}
-        className="shrink-0 rounded-md bg-destructive px-2.5 py-1 text-white transition-colors hover:bg-destructive/90 disabled:opacity-60"
-      >
-        {t('Force quit')}
-      </button>
-      <button
-        type="button"
-        onClick={() => setMinimized(false)}
-        className="shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
-        title={t('Expand')}
-      >
-        <Maximize2 className="h-3.5 w-3.5" />
-      </button>
-    </BannerBar>
+    <motion.div
+      variants={heightVariants}
+      initial="initial"
+      animate="animate"
+      className="overflow-hidden"
+    >
+      <BannerBar>
+        <Spinner className="h-3.5 w-3.5 shrink-0 text-blue-500" />
+        <button
+          type="button"
+          onClick={() => setMinimized(false)}
+          className="min-w-0 flex-1 truncate text-left"
+        >
+          {t(EXIT_STRIPS[state.exit])}
+          {state.blockers?.length
+            ? t(' · waiting for {{count}} sessions', { count: state.blockers.length })
+            : ''}
+        </button>
+        <button
+          type="button"
+          disabled={forcing}
+          onClick={forceQuit}
+          className="shrink-0 rounded-md bg-destructive px-2.5 py-1 text-white transition-colors hover:bg-destructive/90 disabled:opacity-60"
+        >
+          {t('Force quit')}
+        </button>
+        <button
+          type="button"
+          onClick={() => setMinimized(false)}
+          className="shrink-0 rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
+          title={t('Expand')}
+        >
+          <Maximize2 className="h-3.5 w-3.5" />
+        </button>
+      </BannerBar>
+    </motion.div>
   );
 }

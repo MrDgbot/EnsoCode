@@ -3,7 +3,12 @@ import { BotMessageSquare, SquareTerminal } from 'lucide-react';
 import { type KeyboardEvent, useId, useRef } from 'react';
 import { useI18n } from '@/i18n';
 import { effectiveKeybindings, formatBinding } from '@/lib/keybindings';
-import { springStandard } from '@/lib/motion';
+import {
+  badgeCloseTransition,
+  badgePopTransition,
+  badgeSlideTransition,
+  springStandard,
+} from '@/lib/motion';
 import { cn } from '@/lib/utils';
 import { useBotPendingCount } from '@/stores/bots';
 import { type AppMode, useAppModeStore } from '@/stores/bots/mode';
@@ -21,11 +26,6 @@ const ARROW_STEP: Record<string, number> = {
   ArrowRight: 1,
   ArrowDown: 1,
 };
-
-// transitions.dev 03-notification-badge：斜向滑入 + 数字弹出
-const BADGE_SLIDE = { duration: 0.26, ease: [0.22, 1, 0.36, 1] } as const;
-const BADGE_POP = { duration: 0.5, ease: [0.34, 1.36, 0.64, 1] } as const;
-const BADGE_CLOSE = { duration: 0.18, ease: [0.4, 0, 0.2, 1] } as const;
 
 /** 标题栏 Code | Bot 分段控件；Code 模式下 Bot 段显示待处理数 */
 export function ModeSwitch({ className }: { className?: string }) {
@@ -94,7 +94,7 @@ export function ModeSwitch({ className }: { className?: string }) {
                   className="-top-1.5 -right-1.5 pointer-events-none absolute"
                   initial={reduceMotion ? false : { x: -8, y: 12 }}
                   animate={{ x: 0, y: 0 }}
-                  transition={BADGE_SLIDE}
+                  transition={badgeSlideTransition}
                 >
                   <motion.span
                     className="block"
@@ -103,9 +103,14 @@ export function ModeSwitch({ className }: { className?: string }) {
                     exit={
                       reduceMotion
                         ? { opacity: 0, transition: { duration: 0 } }
-                        : { scale: 0, opacity: 0, filter: 'blur(2px)', transition: BADGE_CLOSE }
+                        : {
+                            scale: 0,
+                            opacity: 0,
+                            filter: 'blur(2px)',
+                            transition: badgeCloseTransition,
+                          }
                     }
-                    transition={BADGE_POP}
+                    transition={badgePopTransition}
                   >
                     <CountBadge count={pending} className="block" />
                   </motion.span>

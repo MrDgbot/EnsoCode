@@ -1,5 +1,6 @@
 import type { BotChat, BotProfile } from '@shared/types/bot';
 import type { BotChatUpdateInput } from '@shared/types/botIpc';
+import { motion } from 'framer-motion';
 import {
   AlarmClock,
   Archive,
@@ -47,6 +48,7 @@ import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/in
 import { Menu, MenuItem, MenuPopup, MenuTrigger } from '@/components/ui/menu';
 import { addToast } from '@/components/ui/toast';
 import { useI18n } from '@/i18n';
+import { sidebarWidthTransition } from '@/lib/motion';
 import { formatRelativeTime } from '@/lib/time';
 import { cn } from '@/lib/utils';
 import { openSettings } from '@/stores/appView';
@@ -68,10 +70,11 @@ import { chatErrorText, chatTitle } from './botText';
 import { CloneGroupDialog } from './CloneGroupDialog';
 
 const ICON_BUTTON_CLASS =
-  'relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground';
+  'relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
 
 interface BotSidebarProps {
   width: number;
+  resizing?: boolean;
   /** 缺省时不画折叠按钮（桌面端在窗口顶栏） */
   onCollapse?: () => void;
   onNewMember: () => void;
@@ -82,6 +85,7 @@ interface BotSidebarProps {
 
 export function BotSidebar({
   width,
+  resizing,
   onCollapse,
   onNewMember,
   onNewGroup,
@@ -289,9 +293,11 @@ export function BotSidebar({
   };
 
   return (
-    <aside
+    <motion.aside
+      initial={false}
+      animate={{ width }}
+      transition={sidebarWidthTransition({ resizing, collapsed: false })}
       className="flex shrink-0 flex-col overflow-hidden border-r bg-background"
-      style={{ width }}
     >
       <div className="min-h-0 flex-1 overflow-y-auto pt-2 pb-2">
         <SectionHeader title={t('Group chats')} onAdd={onNewGroup} addLabel={t('New group chat')} />
@@ -585,7 +591,7 @@ export function BotSidebar({
         }}
       />
       <CloneGroupDialog chat={cloning} onOpenChange={(open) => !open && setCloning(null)} />
-    </aside>
+    </motion.aside>
   );
 }
 

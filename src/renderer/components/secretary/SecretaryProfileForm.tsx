@@ -96,8 +96,8 @@ function SwitchField({
       >
         <span
           className={cn(
-            'absolute top-0.5 size-3.5 rounded-full bg-background transition-all',
-            checked ? 'left-[18px]' : 'left-0.5'
+            'absolute top-0.5 left-0.5 size-3.5 rounded-full bg-background transition-transform duration-150 [transition-timing-function:var(--ease-smooth-out)] motion-reduce:transition-none',
+            checked && 'translate-x-4'
           )}
         />
       </button>

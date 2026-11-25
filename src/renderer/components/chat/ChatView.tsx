@@ -7,18 +7,21 @@ import { projectDisplayName } from '@shared/projectName';
 import { formatReminderTooltip } from '@shared/reminders';
 import { isBuiltinToolEnabledForProject } from '@shared/types/builtinTools';
 import { isVirtualRef, modelDisplayName } from '@shared/virtualModels';
-import { Loader2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { FolderPlus, Loader2 } from 'lucide-react';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { ChromeRow, useShellChrome } from '@/components/app/WindowChrome';
 import { SecretaryReturnButton } from '@/components/secretary/SecretaryReturnButton';
 import { SecretaryTakeoverControl } from '@/components/secretary/SecretaryTakeover';
 import { SecretaryTransferControl } from '@/components/secretary/SecretaryTransfer';
+import { Button } from '@/components/ui/button';
 import { addToast } from '@/components/ui/toast';
 import { useMemberName } from '@/hooks/useMemberName';
 import { toChatMentionCandidates } from '@/hooks/useMentionSearch';
 import { useIsMobile } from '@/hooks/useViewport';
 import { useI18n } from '@/i18n';
+import { heightVariants } from '@/lib/motion';
 import { useMaterializedProviders, useUsableProviders } from '@/stores/modelDirectory/useProviders';
 import { oauthCredentialContext, useOauthCredentialStore } from '@/stores/oauthCredentials';
 import { usePendingReminder } from '@/stores/sessionReminders';
@@ -35,6 +38,7 @@ import { ElevationBar } from '../elevation/ElevationPrompt';
 import { ApprovalBar } from './ApprovalBar';
 import { ApprovalModePicker } from './ApprovalModePicker';
 import { AskBar } from './AskBar';
+import { requestAddProject } from './addProjectBridge';
 import { ChatSessionTimeline } from './ChatSessionTimeline';
 import { ChildRunsButton } from './ChildRunsButton';
 import { Composer } from './Composer';
@@ -45,7 +49,7 @@ import { routeComposerPayload } from './composerRouting';
 import { GoalBar } from './GoalBar';
 import { MarkdownLinkContext } from './Markdown';
 import { MessageQueue } from './MessageQueue';
-import { CHAT_COL, type MessageTimelineHandle } from './MessageTimeline';
+import { CHAT_COL, EmptyReveal, type MessageTimelineHandle } from './MessageTimeline';
 import { ModelPicker } from './ModelPicker';
 import { PlanBar } from './PlanBar';
 import { PlanModeToggle } from './PlanModeToggle';
@@ -336,12 +340,18 @@ export function ChatView() {
       >
         {shellChrome && <ChromeRow data-enso="title-bar" />}
         {emptyState === 'empty' && (
-          <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-1 text-center">
-            <p className="text-lg font-medium">EnsoCode</p>
-            <p className="text-sm text-muted-foreground">
+          <EmptyReveal className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
+            <p className="t-stagger-line t-stagger-line--1 text-lg font-medium">EnsoCode</p>
+            <p className="t-stagger-line t-stagger-line--2 text-sm text-muted-foreground">
               {t('Create or select a project to start a conversation')}
             </p>
-          </div>
+            <div className="t-stagger-line t-stagger-line--3 mt-3">
+              <Button size="sm" onClick={() => requestAddProject()}>
+                <FolderPlus className="h-3.5 w-3.5" />
+                {t('Add project')}
+              </Button>
+            </div>
+          </EmptyReveal>
         )}
       </div>
     );
@@ -410,27 +420,47 @@ export function ChatView() {
                 conversationId={chrome.id}
               />
             )}
-          {chrome.retry && (
-            <RetryBar
-              retry={chrome.retry}
-              onCancel={() => void window.electronAPI.agent.abortRetry(chrome.id)}
-            />
-          )}
-          {(chrome.rewinding || chrome.restoringFiles) && (
-            <div
-              role="status"
-              className="mb-1 flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-muted-foreground text-xs"
-            >
-              <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
-              <span>
-                {chrome.restoringFiles && !chrome.rewinding
-                  ? t('Restoring files…')
-                  : chrome.restoringFiles
-                    ? t('Rewinding conversation and files…')
-                    : t('Rewinding…')}
-              </span>
-            </div>
-          )}
+          <AnimatePresence initial={false}>
+            {chrome.retry && (
+              <motion.div
+                key="retry-bar"
+                variants={heightVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="overflow-hidden"
+              >
+                <RetryBar
+                  retry={chrome.retry}
+                  onCancel={() => void window.electronAPI.agent.abortRetry(chrome.id)}
+                />
+              </motion.div>
+            )}
+            {(chrome.rewinding || chrome.restoringFiles) && (
+              <motion.div
+                key="rewind-strip"
+                variants={heightVariants}
+                initial="initial"
+                animate="animate"
+                exit="exit"
+                className="overflow-hidden"
+              >
+                <div
+                  role="status"
+                  className="mb-1 flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-muted-foreground text-xs"
+                >
+                  <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+                  <span>
+                    {chrome.restoringFiles && !chrome.rewinding
+                      ? t('Restoring files…')
+                      : chrome.restoringFiles
+                        ? t('Rewinding conversation and files…')
+                        : t('Rewinding…')}
+                  </span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           <MarkdownLinkContext.Provider
             value={{
               conversationId: chrome.id,

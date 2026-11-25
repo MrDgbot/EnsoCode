@@ -1,11 +1,25 @@
 import { parseHTML } from 'linkedom';
-import { act, type ComponentProps, createElement } from 'react';
+import { act, type ComponentProps, createElement, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setLayoutAnimating } from '@/stores/layoutAnimation';
 import type { TimelineItem } from '@/stores/sessions/timeline';
 import { MessageTimeline } from './MessageTimeline';
 import type { NavRailItem } from './NavRail';
+
+vi.mock('framer-motion', () => ({
+  AnimatePresence: ({ children }: { children?: ReactNode }) => children,
+  motion: {
+    button: ({
+      initial: _initial,
+      animate: _animate,
+      exit: _exit,
+      variants: _variants,
+      ...props
+    }: ComponentProps<'button'> & Record<string, unknown>) =>
+      createElement('button', { type: 'button', ...props }),
+  },
+}));
 
 let navItems: NavRailItem[] = [];
 let virtuosoProps: {
