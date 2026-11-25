@@ -4481,6 +4481,13 @@ export const zhTranslations: Record<string, string> = {
   'This removes "{{name}}" from your skills list.': '将从技能列表中移除「{{name}}」。',
   'Delete SSH connection?': '删除 SSH 连接？',
   Metric: '指标',
+  'Conversation archived': '会话已归档',
+  'Dismiss {{name}}?': '解雇 {{name}}？',
+  "Couldn't display this message": '无法显示此消息',
+  'Queue message': '加入消息队列',
+  'Stop generation': '停止生成',
+  'Searching history…': '正在搜索历史记录…',
+  'Start chatting now': '立即开始对话',
 };
 
 export function normalizeLocale(input?: string): Locale {
