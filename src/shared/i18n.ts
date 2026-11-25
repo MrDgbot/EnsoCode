@@ -4483,6 +4483,7 @@ export const zhTranslations: Record<string, string> = {
   Metric: '指标',
   'Conversation archived': '会话已归档',
   'Dismiss {{name}}?': '解雇 {{name}}？',
+  'Its session will be closed.': '其会话将被关闭。',
   "Couldn't display this message": '无法显示此消息',
   'Queue message': '加入消息队列',
   'Stop generation': '停止生成',

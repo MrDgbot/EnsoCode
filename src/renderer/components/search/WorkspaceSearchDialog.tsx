@@ -443,7 +443,7 @@ export function WorkspaceSearchDialog({
       tabIndex={-1}
       data-search-scope={scope}
       title={t('Switch scope')}
-      className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2 text-muted-foreground text-xs transition-[background-color,color,transform] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
+      className="flex h-7 shrink-0 items-center gap-1.5 rounded-md border px-2 text-muted-foreground text-xs transition-[background-color,color,scale] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
       onPointerDown={(event) => {
         event.preventDefault();
         event.stopPropagation();
@@ -487,7 +487,7 @@ export function WorkspaceSearchDialog({
                     <button
                       type="button"
                       onClick={() => setScope((current) => cycleWorkspaceSearchScope(current))}
-                      className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
+                      className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-[background-color,color,scale] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
                     >
                       <Kbd>⇥</Kbd>
                       {t(scope === 'project' ? 'Search all projects' : 'Include archived')}
@@ -496,7 +496,7 @@ export function WorkspaceSearchDialog({
                     <button
                       type="button"
                       onClick={() => setQuery('')}
-                      className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
+                      className="mt-2 inline-flex items-center justify-center gap-1.5 rounded-md border px-2.5 py-1 text-xs text-muted-foreground transition-[background-color,color,scale] duration-150 hover:bg-accent hover:text-foreground active:scale-[0.97] motion-reduce:transition-none motion-reduce:active:scale-100"
                     >
                       {t('Clear search')}
                     </button>

@@ -36,7 +36,7 @@ import { NewGroupDialog } from './NewGroupDialog';
 import { NewTeamDialog } from './NewTeamDialog';
 
 const RAIL_BUTTON =
-  'relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
+  'relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-[background-color,color,scale] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
 
 interface BotViewProps {
   sidebarWidth: number;

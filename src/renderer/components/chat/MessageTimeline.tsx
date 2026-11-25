@@ -1000,7 +1000,7 @@ export function MessageTimeline({
                   animate="animate"
                   exit="exit"
                   onClick={scrollToBottom}
-                  className="pointer-events-auto inline-flex h-7 items-center gap-1.5 rounded-full border bg-card px-3 text-xs text-muted-foreground shadow-float transition-[color,transform] duration-150 hover:text-foreground active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100"
+                  className="pointer-events-auto inline-flex h-7 items-center gap-1.5 rounded-full border bg-card px-3 text-xs text-muted-foreground shadow-float transition-[color,scale] duration-150 hover:text-foreground active:scale-[0.96] motion-reduce:transition-none motion-reduce:active:scale-100"
                 >
                   <ArrowDown className="h-3 w-3" />
                   {t('Scroll to bottom')}

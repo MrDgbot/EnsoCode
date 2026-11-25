@@ -70,7 +70,7 @@ import { chatErrorText, chatTitle } from './botText';
 import { CloneGroupDialog } from './CloneGroupDialog';
 
 const ICON_BUTTON_CLASS =
-  'relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
+  'relative flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-[background-color,color,scale] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
 
 interface BotSidebarProps {
   width: number;

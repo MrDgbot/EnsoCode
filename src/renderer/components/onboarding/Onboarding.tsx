@@ -145,7 +145,7 @@ export function Onboarding() {
         <button
           type="button"
           onClick={finish}
-          className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100"
+          className="absolute right-3 top-3 rounded-md p-1.5 text-muted-foreground transition-[background-color,color,scale] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100"
           aria-label={t('Close')}
         >
           <X className="h-4 w-4" />

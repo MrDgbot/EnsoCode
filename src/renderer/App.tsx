@@ -161,7 +161,7 @@ function startNewConversation() {
 }
 
 const TOOLBAR_BUTTON =
-  'no-drag flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
+  'no-drag flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-[background-color,color,scale] duration-150 hover:bg-muted hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
 const MIN_WIDTH = 200;
 const MAX_WIDTH = 420;
 
@@ -610,7 +610,7 @@ export default function App() {
     <button
       type="button"
       className={cn(
-        'flex items-center justify-center rounded-md transition-[background-color,color,transform] duration-150 hover:bg-accent/50 active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100',
+        'flex items-center justify-center rounded-md transition-[background-color,color,scale] duration-150 hover:bg-accent/50 active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100',
         isMobile ? 'h-9 w-9' : desktopShell ? TOOLBAR_BUTTON : 'h-7 w-7',
         (botModeActive ? botPanelOpen : sideOpen) ? 'text-foreground' : 'text-muted-foreground'
       )}
@@ -625,7 +625,7 @@ export default function App() {
     <button
       type="button"
       className={cn(
-        'flex h-7 w-7 items-center justify-center rounded-md transition-[background-color,color,transform] duration-150 hover:bg-accent/50 active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100',
+        'flex h-7 w-7 items-center justify-center rounded-md transition-[background-color,color,scale] duration-150 hover:bg-accent/50 active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100',
         chatWide ? 'text-foreground' : 'text-muted-foreground',
         isMobile && 'hidden'
       )}

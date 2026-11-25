@@ -242,7 +242,7 @@ const SECRETARY_FOLDS_KEY = 'enso-collapsed-secretaries';
 const SECRETARY_VISIBLE_LIMIT = 3;
 
 const ICON_BUTTON_CLASS =
-  'flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-foreground/5 hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
+  'flex size-8 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-[background-color,color,scale] duration-150 hover:bg-foreground/5 hover:text-foreground active:scale-[0.95] motion-reduce:transition-none motion-reduce:active:scale-100';
 /** 分区标题右侧的悬停按钮；无悬停的触屏常显 */
 const SECTION_ACTION_CLASS =
   '-my-0.5 flex size-5 shrink-0 items-center justify-center rounded-[5px] text-subtle-foreground opacity-0 transition-opacity hover:bg-foreground/5 hover:text-foreground focus-visible:opacity-100 group-hover:opacity-100 [@media(hover:none)]:opacity-100';
@@ -692,7 +692,7 @@ export function Sidebar({
   const [projectSettingsId, setProjectSettingsId] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   useEffect(() => registerAddProject(() => setAddOpen(true)), []);
-  useEffect(() => () => setLayoutAnimating(false), []);
+  useEffect(() => () => setLayoutAnimating(false, 'sidebar'), []);
   const [listSearchOpen, setListSearchOpen] = useState(false);
   const [pendingProject, setPendingProject] = useState<{
     name: string;
@@ -1125,8 +1125,8 @@ export function Sidebar({
       initial={false}
       animate={{ width: collapsed ? 48 : width }}
       transition={sidebarWidthTransition({ resizing, collapsed })}
-      onAnimationStart={() => setLayoutAnimating(true)}
-      onAnimationComplete={() => setLayoutAnimating(false)}
+      onAnimationStart={() => setLayoutAnimating(true, 'sidebar')}
+      onAnimationComplete={() => setLayoutAnimating(false, 'sidebar')}
       data-enso="sidebar"
       className="flex shrink-0 flex-col overflow-hidden"
     >

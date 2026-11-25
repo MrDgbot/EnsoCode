@@ -1260,7 +1260,7 @@ export function SidePanel({
     return () => ro.disconnect();
   }, []);
   // 动画中途卸载收不到 complete，不复位会让聊天区永远不跟随
-  useEffect(() => () => setLayoutAnimating(false), []);
+  useEffect(() => () => setLayoutAnimating(false, 'sidepanel'), []);
   useEffect(() => {
     if (widthAnim.from === widthAnim.id) return;
     setWidthAnim((s) => (s.from === s.id ? s : { ...s, from: s.id }));
@@ -1304,9 +1304,9 @@ export function SidePanel({
               }
         }
         transition={sidePanelWidthTransition({ skip: skipWidthAnim, cover, targetW })}
-        onAnimationStart={() => setLayoutAnimating(true)}
+        onAnimationStart={() => setLayoutAnimating(true, 'sidepanel')}
         onAnimationComplete={() => {
-          setLayoutAnimating(false);
+          setLayoutAnimating(false, 'sidepanel');
           if (!fullscreen) setCover(false);
         }}
         className={cn(
