@@ -1,3 +1,4 @@
+import { MotionGlobalConfig } from 'framer-motion';
 import { parseHTML } from 'linkedom';
 import * as React from 'react';
 import { act } from 'react';
@@ -172,7 +173,10 @@ function diff(before: Record<string, unknown>, after: Record<string, unknown>) {
 export function setupPin(config: PinConfig) {
   const results = config.results ?? {};
   const props = config.props ?? {};
+  const pendingRafs = new Set<ReturnType<typeof setTimeout>>();
+  const prevSkipAnimations = MotionGlobalConfig.skipAnimations;
   beforeAll(async () => {
+    MotionGlobalConfig.skipAnimations = true;
     const dom = parseHTML(
       '<!doctype html><html><head></head><body><div id="root"></div></body></html>'
     );
@@ -199,8 +203,19 @@ export function setupPin(config: PinConfig) {
       electronAPI: api('electronAPI'),
       getComputedStyle: () => ({ getPropertyValue: () => '' }),
       matchMedia: () => ({ matches: false, addEventListener() {}, removeEventListener() {} }),
-      requestAnimationFrame: (cb: FrameRequestCallback) => setTimeout(() => cb(0), 0),
-      cancelAnimationFrame: (id: number) => clearTimeout(id),
+      requestAnimationFrame: (cb: FrameRequestCallback) => {
+        const id = setTimeout(() => {
+          pendingRafs.delete(id);
+          cb(0);
+        }, 0);
+        pendingRafs.add(id);
+        return id as unknown as number;
+      },
+      cancelAnimationFrame: (id: number) => {
+        const timerId = id as unknown as ReturnType<typeof setTimeout>;
+        pendingRafs.delete(timerId);
+        clearTimeout(timerId);
+      },
     });
     vi.stubGlobal('window', dom.window);
     vi.stubGlobal('document', dom.document);
@@ -239,7 +254,10 @@ export function setupPin(config: PinConfig) {
   });
 
   afterAll(async () => {
-    await act(async () => root.unmount());
+    MotionGlobalConfig.skipAnimations = prevSkipAnimations;
+    for (const id of pendingRafs) clearTimeout(id);
+    pendingRafs.clear();
+    await act(async () => root?.unmount());
     vi.unstubAllGlobals();
   });
   return {

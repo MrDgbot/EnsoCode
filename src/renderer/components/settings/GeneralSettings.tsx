@@ -4,13 +4,16 @@ import type { ShellIntegration } from '@shared/shellIntegration';
 import type { ServerUpdateMode, UpdaterState, UpdateStatus } from '@shared/types/updater';
 import { isPrereleaseVersion, type UpdateChannel } from '@shared/updater/channel';
 import { isAutoRestartMode } from '@shared/updater/idleRestart';
+import { AnimatePresence, MotionGlobalConfig, motion, useReducedMotion } from 'framer-motion';
 import * as React from 'react';
 import { ManualInstallActions } from '@/components/app/ManualInstallActions';
 import { ReleaseNotesDialog } from '@/components/app/ReleaseNotesDialog';
 import { restartToUpdate } from '@/components/app/restartToUpdate';
 import { ConfirmDialog } from '@/components/chat/ConfirmDialog';
+import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useI18n } from '@/i18n';
+import { heightVariants } from '@/lib/motion';
 import { isRemoteClient } from '@/lib/remoteClient';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settings';
@@ -21,7 +24,9 @@ import {
   SettingsRow,
   SettingsSection,
   SettingsSelect,
+  SettingsSubRow,
   SettingsSwitch,
+  useSettingsRow,
   useSettingsRowControl,
 } from './kit';
 
@@ -58,7 +63,7 @@ export function GeneralSettings() {
       <ConfigSyncSettings />
       <UpdateSection />
 
-      {window.electronAPI.env.platform === 'darwin' && (
+      {window.electronAPI.env.platform === 'darwin' && !isRemoteClient() && (
         <SettingsSection title={t('Integrations')}>
           <ShellIntegrationRow
             kind="ensoCommand"
@@ -153,6 +158,37 @@ function applyProxy(mode: ProxyMode, customUrl: string): void {
   void window.electronAPI.proxy.apply({ mode, customUrl });
 }
 
+function ProxyUrlField({
+  value,
+  error,
+  onChange,
+  onCommit,
+}: {
+  value: string;
+  error: string | null;
+  onChange: (value: string) => void;
+  onCommit: () => boolean;
+}) {
+  const row = useSettingsRow();
+  const commit = () => {
+    if (onCommit()) row?.markSaved();
+  };
+  return (
+    <div className="flex w-full max-w-[220px] flex-col items-end gap-1">
+      <RowTextInput
+        value={value}
+        placeholder="http://127.0.0.1:7890"
+        onChange={(event) => onChange(event.target.value)}
+        onBlur={commit}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') commit();
+        }}
+      />
+      {error && <p className="text-right text-[12px] text-destructive">{error}</p>}
+    </div>
+  );
+}
+
 function ProxySection() {
   const { t } = useI18n();
   const proxyMode = useSettingsStore((s) => s.proxyMode);
@@ -161,6 +197,8 @@ function ProxySection() {
   const setCustomProxyUrl = useSettingsStore((s) => s.setCustomProxyUrl);
   const [draft, setDraft] = React.useState(customProxyUrl);
   const [error, setError] = React.useState<string | null>(null);
+  const reducedMotion = useReducedMotion();
+  const reduced = reducedMotion === true || MotionGlobalConfig.skipAnimations === true;
 
   React.useEffect(() => {
     setDraft(customProxyUrl);
@@ -171,16 +209,32 @@ function ProxySection() {
     applyProxy(mode, customProxyUrl);
   };
 
-  const commitUrl = () => {
+  const commitUrl = (): boolean => {
     const next = draft.trim();
     if (next && !isValidProxyUrl(next)) {
       setError(t('Enter an http(s) proxy URL'));
-      return;
+      return false;
     }
     setError(null);
+    const changed = next !== customProxyUrl;
     setCustomProxyUrl(next);
     applyProxy(proxyMode, next);
+    return changed;
   };
+
+  const urlRow = (
+    <SettingsSubRow label={t('Proxy URL')}>
+      <ProxyUrlField
+        value={draft}
+        error={error}
+        onChange={(next) => {
+          setDraft(next);
+          if (error) setError(null);
+        }}
+        onCommit={commitUrl}
+      />
+    </SettingsSubRow>
+  );
 
   return (
     <div data-settings-row="general.proxy">
@@ -198,21 +252,24 @@ function ProxySection() {
           ]}
         />
       </SettingsRow>
-      {proxyMode === 'custom' && (
-        <SettingsRow label={t('Proxy URL')}>
-          <div className="flex w-full max-w-[220px] flex-col items-end gap-1">
-            <RowTextInput
-              value={draft}
-              placeholder="http://127.0.0.1:7890"
-              onChange={(event) => setDraft(event.target.value)}
-              onBlur={commitUrl}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') commitUrl();
-              }}
-            />
-            {error && <p className="text-right text-[12px] text-destructive">{error}</p>}
-          </div>
-        </SettingsRow>
+      {reduced ? (
+        proxyMode === 'custom' ? (
+          urlRow
+        ) : null
+      ) : (
+        <AnimatePresence initial={false}>
+          {proxyMode === 'custom' && (
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={heightVariants}
+              className="overflow-hidden"
+            >
+              {urlRow}
+            </motion.div>
+          )}
+        </AnimatePresence>
       )}
     </div>
   );
@@ -278,10 +335,25 @@ function CaCertSection() {
     return t('Not set');
   };
 
+  const statusBadge = status?.error ? (
+    <Badge variant="error" className="shrink-0 text-[11px]">
+      {t('Error')}
+    </Badge>
+  ) : status?.source === 'setting' ? (
+    <Badge variant="success" className="shrink-0 text-[11px]">
+      {t('Active')}
+    </Badge>
+  ) : status?.source === 'env' || status?.source === 'shell' ? (
+    <Badge variant="info" className="shrink-0 text-[11px]">
+      {t('From environment')}
+    </Badge>
+  ) : undefined;
+
   return (
     <SettingsRow
       rowId="general.caCert"
       label={t('Custom CA certificate')}
+      status={statusBadge}
       description={
         <>
           {t(
@@ -405,6 +477,39 @@ function UpdateSection() {
   };
   const text = statusText();
   const busy = status?.status === 'checking' || status?.status === 'downloading';
+  const reducedMotion = useReducedMotion();
+  const reduced = reducedMotion === true || MotionGlobalConfig.skipAnimations === true;
+
+  const autoRestartRow = (
+    <SettingsSubRow
+      label={t('Restart automatically to apply updates')}
+      description={
+        autoRestartForUpdate === 'immediate'
+          ? t(
+              "Restart as soon as the update is downloaded, even while agents are running or messages are queued. The restart happens after the current tool finishes, and running sessions keep going afterwards. It still waits while you're using the window (input in the last 2 minutes), while an input box has an unsent draft, or while a question or approval is pending."
+            )
+          : autoRestartForUpdate === 'idle'
+            ? t(
+                'After the update is downloaded, restart automatically if no agent is running, nothing is queued, and there are no pending questions or approvals. The idle state must last 5 minutes, and a focused window also blocks it.'
+              )
+            : t('Only notify when an update is ready; never restart automatically.')
+      }
+    >
+      <SettingsSelect
+        value={autoRestartForUpdate}
+        onValueChange={(value) => {
+          if (!isAutoRestartMode(value)) return;
+          setAutoRestartForUpdate(value);
+          void window.electronAPI.updater.setAutoRestartMode(value);
+        }}
+        options={[
+          { value: 'off', label: t('Off') },
+          { value: 'idle', label: t('When idle') },
+          { value: 'immediate', label: t("Don't wait for idle") },
+        ]}
+      />
+    </SettingsSubRow>
+  );
 
   return (
     <SettingsSection
@@ -492,37 +597,25 @@ function UpdateSection() {
           }}
         />
       </SettingsRow>
-      <div className={autoUpdate ? undefined : 'opacity-60'}>
-        <SettingsRow
-          label={t('Restart automatically to apply updates')}
-          description={
-            autoRestartForUpdate === 'immediate'
-              ? t(
-                  "Restart as soon as the update is downloaded, even while agents are running or messages are queued. The restart happens after the current tool finishes, and running sessions keep going afterwards. It still waits while you're using the window (input in the last 2 minutes), while an input box has an unsent draft, or while a question or approval is pending."
-                )
-              : autoRestartForUpdate === 'idle'
-                ? t(
-                    'After the update is downloaded, restart automatically if no agent is running, nothing is queued, and there are no pending questions or approvals. The idle state must last 5 minutes, and a focused window also blocks it.'
-                  )
-                : t('Only notify when an update is ready; never restart automatically.')
-          }
-        >
-          <SettingsSelect
-            value={autoRestartForUpdate}
-            disabled={!autoUpdate}
-            onValueChange={(value) => {
-              if (!isAutoRestartMode(value)) return;
-              setAutoRestartForUpdate(value);
-              void window.electronAPI.updater.setAutoRestartMode(value);
-            }}
-            options={[
-              { value: 'off', label: t('Off') },
-              { value: 'idle', label: t('When idle') },
-              { value: 'immediate', label: t("Don't wait for idle") },
-            ]}
-          />
-        </SettingsRow>
-      </div>
+      {reduced ? (
+        autoUpdate ? (
+          autoRestartRow
+        ) : null
+      ) : (
+        <AnimatePresence initial={false}>
+          {autoUpdate && (
+            <motion.div
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              variants={heightVariants}
+              className="overflow-hidden"
+            >
+              {autoRestartRow}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
       {(host?.host === 'desktop' || host?.host === 'server') && (
         <SettingsRow
           rowId="general.updateChannel"
